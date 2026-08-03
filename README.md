@@ -4,7 +4,7 @@ An IoT-based wearable safety vest powered by **ESP32**, **LoRa**, and a **solar 
 
 ## Features
 - 🌡️ Environmental Monitoring (BME280)
-- 📍 GPS Tracking (NEO-6M)
+- 📍 GPS Tracking (NEO-M8N)
 - 🚶 Motion & Fall Detection (MPU6050)
 - 📡 Long-range Communication (SX1278 RA-02 LoRa)
 - ☀️ Solar Charging (DFRobot Solar Power Manager 5V)
@@ -15,7 +15,7 @@ An IoT-based wearable safety vest powered by **ESP32**, **LoRa**, and a **solar 
 - ESP32 DevKit V1
 - BME280
 - MPU6050
-- NEO-6M GPS
+- NEO-M8N GPS
 - SX1278 RA-02
 - 5V Flexible Solar Panel
 - DFRobot Solar Power Manager 5V
