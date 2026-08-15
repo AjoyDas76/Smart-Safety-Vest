@@ -37,14 +37,18 @@ datasheets/
 ```
 
 ## Development Roadmap
-- [x] ESP32 Setup
-- [x] BME280 Integration
-- [x] MPU6050 Integration
-- [x] GPS Integration
-- [x] LoRa Communication
-- [ ] Solar Power System
-- [ ] Final Integration
-- [ ] Testing & Validation
+- [x] Phase 1 - Project Initialization
+- [x] Phase 2 - BME280 Environmental Monitoring
+- [x] Phase 3 - MPU6050 Motion & Fall Detection
+- [ ] Phase 4 - GPS Tracking System
+- [ ] Phase 5 - LoRa Communication System
+- [ ] Phase 6 - IoT Cloud Platform
+- [ ] Phase 7 - Mobile Application
+- [ ] Phase 8 - Smart Safety Features
+- [ ] Phase 9 - System Integration
+- [ ] Phase 10 - Final Product Release
+
+See `firmware/README.md` for the full phase-by-phase breakdown and status.
 
 ## Team
 - Ajoy Das
