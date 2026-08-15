@@ -37,11 +37,11 @@ datasheets/
 ```
 
 ## Development Roadmap
-- [ ] ESP32 Setup
-- [ ] BME280 Integration
-- [ ] MPU6050 Integration
-- [ ] GPS Integration
-- [ ] LoRa Communication
+- [x] ESP32 Setup
+- [x] BME280 Integration
+- [x] MPU6050 Integration
+- [x] GPS Integration
+- [x] LoRa Communication
 - [ ] Solar Power System
 - [ ] Final Integration
 - [ ] Testing & Validation
