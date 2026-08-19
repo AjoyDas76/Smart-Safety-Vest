@@ -65,7 +65,7 @@ See `firmware/README.md` for the full phase-by-phase breakdown and status.
 | Phase 02 - BME280 Integartion              | ✅ Completed |
 | Phase 03 - MPU6050 Integration             | ✅ Completed     |
 | Phase 04 - GPS Module Integration                 | ⏳ In Progress     |
-| Phase 05 - LoRa Integration                | ⏳ In Progress     |
+| Phase 05 - LoRa Integration                | ✅ Completed     |
 | Phase 06 - IoT Cloud Platform         | ⬜ Pending     |
 | Phase 07 - Mobile Application            | ⬜ Pending     |
 | Phase 08 - Smart Safety Feature Integration    | ⬜ Pending     |
