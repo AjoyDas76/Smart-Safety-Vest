@@ -41,7 +41,7 @@ datasheets/
 - [x] Phase 2 - BME280 Environmental Monitoring
 - [x] Phase 3 - MPU6050 Motion & Fall Detection
 - [ ] Phase 4 - GPS Tracking System
-- [ ] Phase 5 - LoRa Communication System
+- [x] Phase 5 - LoRa Communication System
 - [ ] Phase 6 - IoT Cloud Platform
 - [ ] Phase 7 - Mobile Application
 - [ ] Phase 8 - Smart Safety Features
