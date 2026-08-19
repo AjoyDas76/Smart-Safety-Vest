@@ -72,7 +72,6 @@ See `firmware/README.md` for the full phase-by-phase breakdown and status.
 | Phase 09 - Full System Integration              | ⬜ Pending     |
 | Phase 10 - Final Product Release | ⬜ Pending     |
 
-<img width="1024" height="1536" alt="ChatGPT Image Jul 22, 2026, 05_30_40 PM (1)" src="https://github.com/user-attachments/assets/4162c9a6-17cc-40ec-9aae-5b650cc672cf" />
 
-
+<img width="1195" height="1316" alt="Roadmap" src="https://github.com/user-attachments/assets/ffacbf77-9558-41bc-a60e-7abecabab567" />
 
