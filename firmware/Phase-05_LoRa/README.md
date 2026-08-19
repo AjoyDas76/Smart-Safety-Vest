@@ -11,15 +11,16 @@ Establish long-range wireless communication between the worker's vest (transmitt
 - [x] 5.4 Worker Status Transmission — `5.4_Transmitter_WorkerStatus.ino` / `5.4_Receiver_WorkerStatus.ino`
 - [x] 5.5 GPS Data Transmission — `5.5_Transmitter_GPS.ino` / `5.5_Receiver_GPS.ino`
 - [x] 5.6 Fall Alert Transmission — `5_6_Transmitter_FallAlert.ino` / `5_6_Receiver_FallAlert.ino`
-- [ ] 5.7 Communication Range Testing — ⚠️ only receiver side done (`5_7_Receiver_RangeTest.ino`); transmitter-side range test sketch missing
+- [x] 5.7 Communication Range Testing — `5.7_Transmitter_RangeTest.ino` / `5_7_Receiver_RangeTest.ino`
 - [x] 5.8 Packet Reliability & Error Handling — `5_8_Transmitter_Reliability.ino` / `5_8_Receiver_Reliability.ino`
-- [ ] 5.9 LoRa Communication Module Finalization
+- [x] 5.9 LoRa Communication Module Finalization — `5.9_Transmitter_Final.ino` / `5.9_Receiver_Final.ino`
 
 ## Components
 - ESP32 DevKit V1 (x2 — one worker unit, one base station)
 - SX1278 RA-02 LoRa Module (x2)
 - SOS Push Button
 - NEO-M8N GPS Module (worker unit)
+- MPU-6050 (worker unit)
 
 ## Wiring
 
@@ -35,17 +36,21 @@ Establish long-range wireless communication between the worker's vest (transmitt
 | DIO0 | GPIO26 |
 
 SOS Button: one leg → GPIO4, other leg → GND (internal pull-up).
+GPS (NEO-M8N): TX → GPIO16, RX → GPIO17 (Serial2).
+MPU-6050: SDA → GPIO21, SCL → GPIO22 (I2C).
 
 ## Code
 See files listed under Tasks above.
 
+**`5.9_Transmitter_Final.ino` / `5.9_Receiver_Final.ino` are the finalized pair** — this is the version Phase 9 (System Integration) should build on. Earlier files (5.1–5.8) are kept as the development history / individual feature tests.
+
 ## Test Results
-_(Pending full range-test summary — see 5.7.)_
+_(Pending — run a field range test using 5.7's transmitter/receiver pair and log distance vs. RSSI/SNR/loss% here.)_
 
 ## Notes
-- 5.7 needs a matching **transmitter-side** range-test sketch (currently only the receiver logs RSSI/SNR/packet-loss). The transmitter just needs to send numbered packets at a fixed interval for the receiver to evaluate.
-- 5.9 (Finalization) should merge 5.6 (Fall Alert) + 5.8 (Reliability) into one final transmitter/receiver pair — this final pair is effectively what Phase 9 (System Integration) will build on.
+- 5.9 merges 5.6 (Fall Alert + GPS) with 5.8 (Checksum + ACK/retry reliability) into one clean module, with the ongoing link-stats reporting from 5.7 kept in the receiver for continued field monitoring (not just one-off range tests).
+- The 5.9 receiver is the natural point to hook in Phase 6 (Firebase upload) — it already fully decodes and validates every packet.
 
 ## Status
 
-⏳ **In Progress (7/9 sub-tasks complete, 1 partial)**
+✅ **Completed (9/9 sub-tasks)**
