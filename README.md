@@ -75,3 +75,5 @@ See `firmware/README.md` for the full phase-by-phase breakdown and status.
 
 <img width="1195" height="1316" alt="Roadmap" src="https://github.com/user-attachments/assets/ffacbf77-9558-41bc-a60e-7abecabab567" />
 
+<img width="1024" height="1536" alt="Roadmap2" src="https://github.com/user-attachments/assets/b2bbb8bc-9788-4fa2-b7ba-0ebead05db84" />
+
