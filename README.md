@@ -72,8 +72,7 @@ See `firmware/README.md` for the full phase-by-phase breakdown and status.
 | Phase 09 - Full System Integration              | ⬜ Pending     |
 | Phase 10 - Final Product Release | ⬜ Pending     |
 
-<img width="1024" height="1536" alt="Roadmap2" src="https://github.com/user-attachments/assets/f9c04e59-1c69-4f1a-8d45-816207ea3f00" />
+<img width="1149" height="1369" alt="Roadmap" src="https://github.com/user-attachments/assets/6063b51c-f4d6-43b3-bbee-9d23e420dd3a" />
 
-<img width="1196" height="1315" alt="Roadmap" src="https://github.com/user-attachments/assets/fddf8e66-d693-44b1-a97b-416d83bfec18" />
-
+<img width="1195" height="1316" alt="Roadmap2" src="https://github.com/user-attachments/assets/1d301229-3531-4518-87d7-b41990f63e51" />
 
