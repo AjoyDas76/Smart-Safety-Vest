@@ -7,7 +7,7 @@ Integrate the NEO-M8N GPS module with the ESP32 to track the worker's real-time 
 
 - [x] 4.1 GPS Module Integration — `4.1_GPS_Module_Integration.ino`
 - [x] 4.2 Latitude & Longitude Reading — `4.2_Latitude_Longitude_Reading.ino`
-- [ ] 4.3 GPS Accuracy Validation
+- [x] 4.3 GPS Accuracy Validation
 - [x] 4.4 GPS Status Monitoring — `Phase_4.4_GPS_Status_Monitoring.ino`
 - [x] 4.5 Distance Calculation — `Phase_4.5_Distance_Calculation.ino`
 - [x] 4.6 Worker Speed Detection — `Phase_4.6_Worker_Speed_Detection.ino`
