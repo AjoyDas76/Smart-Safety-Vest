@@ -40,7 +40,7 @@ datasheets/
 - [x] Phase 1 - Project Initialization
 - [x] Phase 2 - BME280 Environmental Monitoring
 - [x] Phase 3 - MPU6050 Motion & Fall Detection
-- [ ] Phase 4 - GPS Tracking System
+- [x] Phase 4 - GPS Tracking System
 - [x] Phase 5 - LoRa Communication System
 - [ ] Phase 6 - IoT Cloud Platform
 - [ ] Phase 7 - Mobile Application
@@ -64,7 +64,7 @@ See `firmware/README.md` for the full phase-by-phase breakdown and status.
 | Phase 01 - Project Initialization           | ✅ Completed   |
 | Phase 02 - BME280 Integartion              | ✅ Completed |
 | Phase 03 - MPU6050 Integration             | ✅ Completed     |
-| Phase 04 - GPS Module Integration                 | ⏳ In Progress     |
+| Phase 04 - GPS Module Integration                 | ✅ Completed      |
 | Phase 05 - LoRa Integration                | ✅ Completed     |
 | Phase 06 - IoT Cloud Platform         | ⬜ Pending     |
 | Phase 07 - Mobile Application            | ⬜ Pending     |
@@ -72,7 +72,6 @@ See `firmware/README.md` for the full phase-by-phase breakdown and status.
 | Phase 09 - Full System Integration              | ⬜ Pending     |
 | Phase 10 - Final Product Release | ⬜ Pending     |
 
-<img width="1149" height="1369" alt="Roadmap" src="https://github.com/user-attachments/assets/6063b51c-f4d6-43b3-bbee-9d23e420dd3a" />
+<img width="1149" height="1369" alt="Roadmap" src="https://github.com/user-attachments/assets/29d0c561-884e-4e45-ae82-a04fb72beb29" />
 
-<img width="1195" height="1316" alt="Roadmap2" src="https://github.com/user-attachments/assets/1d301229-3531-4518-87d7-b41990f63e51" />
 
