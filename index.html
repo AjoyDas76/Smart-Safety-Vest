@@ -812,12 +812,25 @@
       });
     }, 2000);
 
-let isSosOn = false;
+let isSosActive = false;
+
 function triggerSOS() {
-  playEmergencySound();
-  isSosOn = !isSosOn;
-  db.ref('/worker1/alerts').update({ sos_active: isSosOn });
-  alert(isSosOn ? 'SOS Signal sent!' : 'SOS Signal Cleared!');
+  isSosActive = !isSosActive;
+  
+  if (isSosActive) {
+    playEmergencySound();
+  }
+
+  // ফায়ারবেসে স্ট্যাটাস টগল করা
+  db.ref('/worker1/alerts').update({ sos_active: isSosActive });
+  
+  // বাটনের ভিজ্যুয়াল ব্যাকগ্রাউন্ড পরিবর্তন (ঐচ্ছিক)
+  const sosCard = document.querySelector('.sos-card');
+  if (isSosActive) {
+    sosCard.style.boxShadow = "0 0 25px #ff3366";
+  } else {
+    sosCard.style.boxShadow = "none";
+  }
 }
   </script>
 </body>
