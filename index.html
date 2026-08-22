@@ -282,6 +282,30 @@
     .alert-card { border: 1px solid rgba(255,0,85,0.5); background: rgba(255,0,85,0.08); }
     .alert-count { background: var(--red); color: #fff; font-size: 8px; padding: 1px 5px; border-radius: 10px; }
 
+    /* ---- Active Alerts list items (big, hard-to-miss alert rows) ---- */
+    .active-alert-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; margin-bottom: 8px; border-radius: 10px;
+      background: rgba(255, 51, 102, 0.15); border: 1px solid var(--red);
+      animation: alertItemPulse 1.4s ease-in-out infinite;
+    }
+    .active-alert-item:last-child { margin-bottom: 0; }
+    .active-alert-icon {
+      font-size: 26px; color: var(--red); flex-shrink: 0;
+      width: 34px; text-align: center;
+    }
+    .active-alert-text { flex: 1; min-width: 0; }
+    .active-alert-title {
+      font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 800;
+      color: var(--red); text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .active-alert-detail { font-size: 11px; color: var(--text-main); margin-top: 3px; }
+
+    @keyframes alertItemPulse {
+      0%, 100% { box-shadow: 0 0 0 rgba(255, 51, 102, 0); }
+      50% { box-shadow: 0 0 16px rgba(255, 51, 102, 0.55); }
+    }
+
     footer { display: flex; justify-content: space-between; align-items: center; font-size: 9px; color: var(--text-muted); padding: 8px; flex-wrap: wrap; gap: 6px; }
 
     @media (max-width: 1024px) { .sensor-grid { grid-template-columns: repeat(3, 1fr); } }
@@ -768,6 +792,29 @@
     
     let isConnected = false;
 
+    // Renders the Active Alerts card at the bottom of the dashboard with
+    // large, clearly visible alert entries — one per active hazard.
+    function renderActiveAlerts(alerts) {
+      const alertBox = document.getElementById('alertBox');
+      const countEl = document.getElementById('activeAlertCount');
+      countEl.innerText = alerts.length;
+
+      if (alerts.length === 0) {
+        alertBox.innerHTML = '<div style="font-size: 10px; color: var(--text-muted); text-align: center; padding: 15px 0;">No active hazardous alerts</div>';
+        return;
+      }
+
+      alertBox.innerHTML = alerts.map((a) => `
+        <div class="active-alert-item">
+          <i class="fa-solid ${a.icon} active-alert-icon"></i>
+          <div class="active-alert-text">
+            <div class="active-alert-title">${a.title}</div>
+            <div class="active-alert-detail">${a.detail}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
     // CORE UI UPDATE FUNCTION
     function processIncomingData(data) {
       if (!data) return;
@@ -804,6 +851,7 @@
       document.getElementById('lastSyncTime').innerText = timeStr;
 
       let isHazard = false;
+      const activeAlertsList = [];
 
       if (data.environment) {
         if (data.environment.temperature !== undefined) {
@@ -813,6 +861,11 @@
             document.getElementById('tempStatus').innerText = 'High Temp';
             document.getElementById('tempStatus').style.color = 'var(--red)';
             isHazard = true;
+            activeAlertsList.push({
+              icon: 'fa-temperature-high',
+              title: val > 45 ? 'High Temperature' : 'Low Temperature',
+              detail: `Reading is ${val.toFixed(1)}°C — outside the safe range of 15°C – 45°C`
+            });
           } else {
             document.getElementById('tempStatus').innerText = 'Normal';
             document.getElementById('tempStatus').style.color = 'var(--green)';
@@ -829,17 +882,41 @@
         }
 
         if (data.environment.humidity !== undefined) {
-          document.getElementById('humVal').innerText = Number(data.environment.humidity).toFixed(1);
-          document.getElementById('humStatus').innerText = 'Normal';
-          document.getElementById('humStatus').style.color = 'var(--green)';
-          updateSparkline('humSpark', Number(data.environment.humidity));
+          const humVal = Number(data.environment.humidity);
+          document.getElementById('humVal').innerText = humVal.toFixed(1);
+          if (humVal > 90 || humVal < 20) {
+            document.getElementById('humStatus').innerText = humVal > 90 ? 'High Humidity' : 'Low Humidity';
+            document.getElementById('humStatus').style.color = 'var(--red)';
+            isHazard = true;
+            activeAlertsList.push({
+              icon: 'fa-droplet',
+              title: humVal > 90 ? 'High Humidity' : 'Low Humidity',
+              detail: `Reading is ${humVal.toFixed(1)}% — outside the safe range of 20% – 90%`
+            });
+          } else {
+            document.getElementById('humStatus').innerText = 'Normal';
+            document.getElementById('humStatus').style.color = 'var(--green)';
+          }
+          updateSparkline('humSpark', humVal);
         }
 
         if (data.environment.pressure !== undefined) {
-          document.getElementById('presVal').innerText = Number(data.environment.pressure).toFixed(0);
-          document.getElementById('presStatus').innerText = 'Normal';
-          document.getElementById('presStatus').style.color = 'var(--green)';
-          updateSparkline('presSpark', Number(data.environment.pressure));
+          const presVal = Number(data.environment.pressure);
+          document.getElementById('presVal').innerText = presVal.toFixed(0);
+          if (presVal > 1050 || presVal < 950) {
+            document.getElementById('presStatus').innerText = presVal > 1050 ? 'High Pressure' : 'Low Pressure';
+            document.getElementById('presStatus').style.color = 'var(--red)';
+            isHazard = true;
+            activeAlertsList.push({
+              icon: 'fa-gauge-high',
+              title: presVal > 1050 ? 'High Pressure' : 'Low Pressure',
+              detail: `Reading is ${presVal.toFixed(0)} hPa — outside the safe range of 950 – 1050 hPa`
+            });
+          } else {
+            document.getElementById('presStatus').innerText = 'Normal';
+            document.getElementById('presStatus').style.color = 'var(--green)';
+          }
+          updateSparkline('presSpark', presVal);
         }
       }
 
@@ -850,7 +927,15 @@
         if (state === "WALKING") iconEl.className = "fa-solid fa-person-walking";
         else if (state === "RUNNING") iconEl.className = "fa-solid fa-person-running";
         else if (state === "LYING") iconEl.className = "fa-solid fa-bed";
-        else if (state === "FALL") { iconEl.className = "fa-solid fa-triangle-exclamation"; isHazard = true; }
+        else if (state === "FALL") {
+          iconEl.className = "fa-solid fa-triangle-exclamation";
+          isHazard = true;
+          activeAlertsList.push({
+            icon: 'fa-person-falling',
+            title: 'Fall Detected (Motion)',
+            detail: 'The motion sensor reports the worker is in a FALL state'
+          });
+        }
         else iconEl.className = "fa-solid fa-person"; // STANDING
       }
 
@@ -863,6 +948,11 @@
           fallBadge.className = "badge badge-alert";
           fallBadge.innerText = "FALL ALERT";
           isHazard = true;
+          activeAlertsList.push({
+            icon: 'fa-person-falling',
+            title: 'Fall Detected',
+            detail: 'The vest\'s fall-detection alert flag is active'
+          });
         } else {
           fallStatus.innerText = "Motion Normal";
           fallStatus.style.color = "var(--green)";
@@ -878,6 +968,11 @@
           sosBadge.className = "badge badge-alert";
           sosBadge.innerText = "SOS ACTIVE";
           isHazard = true;
+          activeAlertsList.push({
+            icon: 'fa-triangle-exclamation',
+            title: 'SOS Activated',
+            detail: 'The worker has triggered the emergency SOS button'
+          });
         } else {
           sosStatus.innerText = "SOS: Inactive";
           sosStatus.style.color = "var(--text-muted)";
@@ -900,6 +995,14 @@
         
         document.getElementById('battVolt').innerText = `${volt.toFixed(2)} V`;
         document.getElementById('battEst').innerText = `Est. ${Math.round((pct/100)*6)}h`;
+
+        if (pct < 20) {
+          activeAlertsList.push({
+            icon: 'fa-battery-quarter',
+            title: 'Low Battery',
+            detail: `Vest battery at ${pct}% (${volt.toFixed(2)} V) — charge soon`
+          });
+        }
       }
 
       if (data.gps && data.gps.latitude && data.gps.longitude) {
@@ -920,6 +1023,8 @@
       }
 
       if (isHazard) playEmergencySound();
+
+      renderActiveAlerts(activeAlertsList);
 
       const eventTable = document.getElementById('eventLogTable');
       const newRow = document.createElement('tr');
