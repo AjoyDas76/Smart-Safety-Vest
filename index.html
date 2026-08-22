@@ -792,6 +792,121 @@
     
     let isConnected = false;
 
+    // ===================== Offline / Stale-Data Detection =====================
+    // Firebase RTDB always returns the LAST value written to '/worker1' —
+    // it never tells us "nothing new has arrived". So if the transmitter
+    // stops sending (or the receiver is off), Firebase just keeps handing
+    // back the same old snapshot forever, and the dashboard would otherwise
+    // keep showing it as if it were live. To fix that we track, ourselves,
+    // when the data last actually CHANGED, and if too much time passes
+    // without a genuine change, we treat the device as offline and clear
+    // the dashboard instead of leaving stale readings on screen.
+    const STALE_TIMEOUT_MS = 6000; // no fresh write for 6s => considered offline
+    let lastUpdateTime = Date.now();
+    let lastRawDataStr = null;
+    let isOfflineState = false;
+
+    // Resets the whole dashboard to a clear "no live data" state.
+    function goOffline() {
+      if (isOfflineState) return; // already showing offline state
+      isOfflineState = true;
+      isConnected = false;
+
+      const connPill = document.getElementById('connPill');
+      connPill.classList.remove('connected');
+      connPill.innerHTML = '<i class="fa-solid fa-circle" style="font-size: 6px;"></i> OFFLINE';
+
+      const sysIcon = document.getElementById('sysIcon');
+      sysIcon.classList.remove('active');
+      sysIcon.innerHTML = '<i class="fa-solid fa-plug-circle-xmark"></i>';
+
+      const sysStatusText = document.getElementById('sysStatusText');
+      sysStatusText.classList.remove('active');
+      sysStatusText.innerText = 'SYSTEM OFFLINE';
+      document.getElementById('sysSubText').innerText = 'NO DATA STREAM RECEIVED';
+
+      document.getElementById('workerStatus').innerText = 'OFFLINE';
+      document.getElementById('workerStatus').style.color = 'var(--red)';
+
+      ['stEsp32', 'stGps', 'stMotion', 'stTemp', 'stNet'].forEach((id) => {
+        const el = document.getElementById(id);
+        el.innerText = 'Disconnected';
+        el.style.color = 'var(--red)';
+      });
+      document.getElementById('rssiVal').innerText = '-- dBm';
+
+      document.getElementById('onlineWorkerCount').innerText = '0 / 20';
+      document.getElementById('onlineWorkerBar').style.width = '0%';
+
+      // Reset every sensor readout so no stale value lingers on screen
+      document.getElementById('tempVal').innerText = '--';
+      document.getElementById('tempStatus').innerText = 'No Data';
+      document.getElementById('tempStatus').style.color = 'var(--text-muted)';
+
+      document.getElementById('humVal').innerText = '--';
+      document.getElementById('humStatus').innerText = 'No Data';
+      document.getElementById('humStatus').style.color = 'var(--text-muted)';
+
+      document.getElementById('presVal').innerText = '--';
+      document.getElementById('presStatus').innerText = 'No Data';
+      document.getElementById('presStatus').style.color = 'var(--text-muted)';
+
+      document.getElementById('motionStateVal').innerText = '--';
+      document.getElementById('motionIcon').className = 'fa-solid fa-person';
+
+      document.getElementById('fallAlertStatus').innerText = '--';
+      document.getElementById('fallAlertStatus').style.color = 'var(--text-muted)';
+      document.getElementById('fallBadge').className = 'badge badge-safe';
+      document.getElementById('fallBadge').innerText = '--';
+
+      document.getElementById('sosAlertStatus').innerText = '--';
+      document.getElementById('sosAlertStatus').style.color = 'var(--text-muted)';
+      document.getElementById('sosBadge').className = 'badge badge-safe';
+      document.getElementById('sosBadge').innerText = '--';
+
+      document.getElementById('battVal').innerText = '--';
+      document.getElementById('battStatus').innerText = 'No Data';
+      document.getElementById('battStatus').style.color = 'var(--text-muted)';
+      document.getElementById('battBar').style.width = '0%';
+      document.getElementById('battVolt').innerText = '-- V';
+      document.getElementById('battEst').innerText = '-- h';
+
+      document.getElementById('lastSyncTime').innerText = '--:--:--';
+
+      // Clear Active Alerts and show an explicit "no live data" notice
+      document.getElementById('activeAlertCount').innerText = '0';
+      document.getElementById('alertBox').innerHTML =
+        '<div style="font-size: 10px; color: var(--amber); text-align: center; padding: 15px 0;">' +
+        '<i class="fa-solid fa-plug-circle-xmark"></i> No live data — device offline</div>';
+
+      // Log the disconnect event
+      const eventTable = document.getElementById('eventLogTable');
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${new Date().toLocaleTimeString()}</td>
+        <td>Connection Lost</td>
+        <td><span class="badge badge-alert">OFFLINE</span></td>
+        <td>No data received</td>
+      `;
+      eventTable.insertBefore(row, eventTable.firstChild);
+      if (eventTable.children.length > 5) eventTable.removeChild(eventTable.lastChild);
+    }
+
+    // Gatekeeper for every Firebase read (both the realtime listener and
+    // the polling fallback): only forwards data to processIncomingData()
+    // when it has genuinely changed, and is the only place lastUpdateTime
+    // gets refreshed. This is what makes offline detection reliable —
+    // re-reading the same old snapshot no longer resets the staleness clock.
+    function handleFirebaseSnapshot(data) {
+      if (!data) return;
+      const rawStr = JSON.stringify(data);
+      if (rawStr === lastRawDataStr) return; // nothing new, ignore
+      lastRawDataStr = rawStr;
+      lastUpdateTime = Date.now();
+      isOfflineState = false;
+      processIncomingData(data);
+    }
+
     // Renders the Active Alerts card at the bottom of the dashboard with
     // large, clearly visible alert entries — one per active hazard.
     function renderActiveAlerts(alerts) {
@@ -1045,17 +1160,26 @@
 
     // 1. Primary Realtime Listener
     db.ref('/worker1').on('value', (snapshot) => {
-      processIncomingData(snapshot.val());
+      handleFirebaseSnapshot(snapshot.val());
     });
 
     // 2. Active Fallback Interval (Guarantees Realtime Updating without Manual Refresh)
     setInterval(() => {
       db.ref('/worker1').once('value').then((snapshot) => {
         if(snapshot.exists()) {
-          processIncomingData(snapshot.val());
+          handleFirebaseSnapshot(snapshot.val());
         }
       });
     }, 2000);
+
+    // 3. Offline Watchdog — if no genuinely NEW data has arrived within
+    // STALE_TIMEOUT_MS, the transmitter/receiver is treated as offline
+    // and the dashboard is cleared instead of showing old readings.
+    setInterval(() => {
+      if (isConnected && !isOfflineState && (Date.now() - lastUpdateTime > STALE_TIMEOUT_MS)) {
+        goOffline();
+      }
+    }, 1000);
 
     // ===================== Web SOS Toggle (rings the vest buzzer) =====================
     // Uses a dedicated '/worker1/commands/web_sos' flag so it never collides with the
