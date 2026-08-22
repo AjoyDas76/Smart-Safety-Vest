@@ -668,6 +668,7 @@
       document.getElementById('lastSyncTime').innerText = timeStr;
 
       let isHazard = false;
+      let activeAlerts = [];
 
       if (data.environment) {
         if (data.environment.temperature !== undefined) {
@@ -677,6 +678,7 @@
             document.getElementById('tempStatus').innerText = 'High Temp';
             document.getElementById('tempStatus').style.color = 'var(--red)';
             isHazard = true;
+            activeAlerts.push(`Abnormal Temperature: ${val.toFixed(1)}°C`);
           } else {
             document.getElementById('tempStatus').innerText = 'Normal';
             document.getElementById('tempStatus').style.color = 'var(--green)';
@@ -711,10 +713,23 @@
         const state = data.status.motion_state;
         document.getElementById('motionStateVal').innerText = state;
         const iconEl = document.getElementById('motionIcon');
-        if (state === "Walking") iconEl.className = "fa-solid fa-person-walking";
-        else if (state === "Running") iconEl.className = "fa-solid fa-person-running";
-        else if (state === "Lying Down") iconEl.className = "fa-solid fa-bed";
-        else iconEl.className = "fa-solid fa-person";
+        const iconBox = document.getElementById('motionIconBox');
+        if (state === "Walking") {
+          iconEl.className = "fa-solid fa-person-walking";
+          iconBox.style.color = 'var(--yellow)';
+        } else if (state === "Running") {
+          iconEl.className = "fa-solid fa-person-running";
+          iconBox.style.color = 'var(--cyan)';
+        } else if (state === "Lying") {
+          iconEl.className = "fa-solid fa-bed";
+          iconBox.style.color = 'var(--amber)';
+        } else if (state === "Fall") {
+          iconEl.className = "fa-solid fa-person-falling-burst";
+          iconBox.style.color = 'var(--red)';
+        } else {
+          iconEl.className = "fa-solid fa-person";
+          iconBox.style.color = 'var(--green)';
+        }
       }
 
       if (data.alerts) {
@@ -726,6 +741,7 @@
           fallBadge.className = "badge badge-alert";
           fallBadge.innerText = "FALL ALERT";
           isHazard = true;
+          activeAlerts.push('Fall Detected');
         } else {
           fallStatus.innerText = "Motion Normal";
           fallStatus.style.color = "var(--green)";
@@ -741,6 +757,7 @@
           sosBadge.className = "badge badge-alert";
           sosBadge.innerText = "SOS ACTIVE";
           isHazard = true;
+          activeAlerts.push('SOS Activated');
         } else {
           sosStatus.innerText = "SOS: Inactive";
           sosStatus.style.color = "var(--text-muted)";
@@ -783,6 +800,18 @@
       }
 
       if (isHazard) playEmergencySound();
+
+      document.getElementById('activeAlertCount').innerText = activeAlerts.length;
+      const alertBox = document.getElementById('alertBox');
+      if (activeAlerts.length === 0) {
+        alertBox.innerHTML = '<div style="font-size: 10px; color: var(--text-muted); text-align: center; padding: 15px 0;">No active hazardous alerts</div>';
+      } else {
+        alertBox.innerHTML = activeAlerts.map(a =>
+          `<div style="font-size: 10px; color: var(--red); padding: 5px 4px; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; gap: 6px;">
+             <i class="fa-solid fa-triangle-exclamation"></i> ${a}
+           </div>`
+        ).join('');
+      }
 
       const eventTable = document.getElementById('eventLogTable');
       const newRow = document.createElement('tr');
