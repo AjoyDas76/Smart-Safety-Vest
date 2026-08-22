@@ -66,7 +66,6 @@
       transition: background 0.3s ease, color 0.3s ease;
     }
 
-    /* Glassmorphism Panel with Hover Cyan Glow Effect */
     .glass-panel {
       background: var(--glass-shine), var(--glass-bg);
       border: 1px solid var(--glass-border);
@@ -77,14 +76,12 @@
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* HOVER CYAN GLOW FEATURE */
     .glass-panel:hover {
       border-color: var(--cyan);
       box-shadow: 0 0 20px var(--cyan-glow), var(--card-glow);
       transform: translateY(-2px);
     }
 
-    /* Collapsible Side Navigation Bar */
     aside {
       width: 240px;
       background: var(--aside-bg);
@@ -128,7 +125,6 @@
       box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
     }
 
-    /* Main Dashboard Layout */
     main {
       flex: 1;
       display: flex;
@@ -141,7 +137,6 @@
 
     .card { padding: 14px; position: relative; width: 100%; }
 
-    /* Header Controls */
     header {
       display: flex; justify-content: space-between; align-items: center;
       padding: 10px 20px; flex-wrap: wrap; gap: 10px;
@@ -168,7 +163,6 @@
     .header-right { display: flex; align-items: center; gap: 12px; font-size: 12px; flex-wrap: wrap; }
     .clock-box { font-family: 'Orbitron', sans-serif; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
 
-    /* Theme & Audio Toggle Action Buttons */
     .btn-action {
       background: rgba(0, 242, 255, 0.1);
       border: 1px solid var(--glass-border);
@@ -201,7 +195,6 @@
       margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
     }
 
-    /* Top Row Widgets */
     .system-card { flex: 1.8; min-width: 250px; display: flex; align-items: center; gap: 16px; }
     .system-icon {
       width: 54px; height: 54px; border-radius: 50%;
@@ -237,7 +230,7 @@
     .worker-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; font-size: 11px; width: 100%; }
     .worker-details span { color: var(--text-muted); }
 
-    /* SENSOR METRICS GRID (5 CARDS RESPONSIVE) */
+    /* SENSOR METRICS GRID */
     .sensor-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; width: 100%; }
     
     .sensor-card-v2 {
@@ -275,7 +268,6 @@
       box-shadow: 0 0 8px var(--amber); border-radius: 2px; transition: width 0.4s ease;
     }
 
-    /* Middle Row Flexible Layout */
     .col-flex-1 { flex: 1; min-width: 250px; }
     .col-flex-2 { flex: 2; min-width: 300px; }
     .col-flex-1-5 { flex: 1.5; min-width: 280px; }
@@ -289,7 +281,6 @@
     .chart-box { height: 200px; position: relative; width: 100%; }
     #map { height: 200px; width: 100%; border-radius: 8px; filter: invert(100%) hue-rotate(190deg) brightness(90%) contrast(110%); }
 
-    /* Tables Responsive Container */
     .table-container { width: 100%; overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 280px; }
     th { color: var(--text-muted); font-weight: 600; padding: 6px; border-bottom: 1px solid var(--border-subtle); text-align: left; }
@@ -304,9 +295,6 @@
 
     footer { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--text-muted); padding: 8px; flex-wrap: wrap; gap: 6px; }
 
-    /* ========================================== */
-    /* MOBILE & TABLET MEDIA QUERIES (RESPONSIVE) */
-    /* ========================================== */
     @media (max-width: 1200px) {
       .sensor-grid { grid-template-columns: repeat(3, 1fr); }
     }
@@ -359,11 +347,8 @@
         <span class="status-badge" id="connPill"><i class="fa-solid fa-circle" style="font-size: 6px;"></i> WAITING</span>
       </div>
       <div class="header-right">
-        <!-- Audio Alarm Toggle Button -->
         <button class="btn-action" id="audioBtn" onclick="toggleAudio()"><i class="fa-solid fa-volume-xmark" id="audioIcon"></i> Audio: OFF</button>
-        <!-- Theme Toggle Button -->
         <button class="btn-action" onclick="toggleTheme()"><i class="fa-solid fa-circle-half-stroke"></i> Theme</button>
-        
         <div class="clock-box"><i class="fa-regular fa-clock"></i> <span id="liveClock">--:--:--</span></div>
       </div>
     </header>
@@ -397,7 +382,7 @@
       </div>
     </div>
 
-    <!-- SENSOR METRICS GRID (REMOVED HEART RATE) -->
+    <!-- SENSOR METRICS GRID -->
     <div class="sensor-grid">
       
       <!-- Temperature -->
@@ -448,20 +433,23 @@
         <div class="sparkline-box-v2"><canvas id="presSpark"></canvas></div>
       </div>
 
-      <!-- Gas / Air Quality -->
+      <!-- Worker Motion & Safety Status Card (Replaced Gas Sensor) -->
       <div class="sensor-card-v2 glass-panel">
         <div class="sensor-body-v2">
-          <div class="sensor-icon-box" style="color: var(--yellow); filter: drop-shadow(0 0 6px rgba(234,179,8,0.6));">
-            <i class="fa-solid fa-cloud-showers-heavy"></i>
+          <div class="sensor-icon-box" id="motionIconBox" style="color: var(--yellow); filter: drop-shadow(0 0 6px rgba(234,179,8,0.6));">
+            <i class="fa-solid fa-person-walking" id="motionIcon"></i>
           </div>
           <div class="sensor-info-box">
-            <span class="sensor-title-v2">GAS / AIR QUALITY</span>
-            <div class="sensor-val-v2"><span id="gasVal">--</span> <small>ppm</small></div>
-            <span class="sensor-status-v2" id="gasStatus">Waiting...</span>
-            <span class="sensor-range-v2">Range: 0 - 50 ppm</span>
+            <span class="sensor-title-v2">WORKER MOTION STATE</span>
+            <div class="sensor-val-v2" style="font-size: 16px;"><span id="motionStateVal">--</span></div>
+            <span class="sensor-status-v2" id="fallAlertStatus">Waiting...</span>
+            <span class="sensor-range-v2" id="sosAlertStatus">SOS: Inactive</span>
           </div>
         </div>
-        <div class="sparkline-box-v2"><canvas id="gasSpark"></canvas></div>
+        <div style="display: flex; gap: 4px; margin-top: 10px;">
+          <span class="badge badge-safe" id="fallBadge" style="width: 100%; text-align: center; font-size: 8px;">NO FALL</span>
+          <span class="badge badge-safe" id="sosBadge" style="width: 100%; text-align: center; font-size: 8px;">SOS NORMAL</span>
+        </div>
       </div>
 
       <!-- Battery -->
@@ -493,9 +481,9 @@
         <div class="card-title">Device Connection</div>
         <div class="device-conn-list">
           <div class="device-item"><div class="device-name"><i class="fa-solid fa-microchip"></i> ESP32</div> <span id="stEsp32" style="color: var(--amber);">Waiting...</span></div>
-          <div class="device-item"><div class="device-name"><i class="fa-solid fa-location-dot"></i> GPS</div> <span id="stGps" style="color: var(--amber);">Waiting...</span></div>
-          <div class="device-item"><div class="device-name"><i class="fa-solid fa-wind"></i> Gas Sensor</div> <span id="stGas" style="color: var(--amber);">Waiting...</span></div>
-          <div class="device-item"><div class="device-name"><i class="fa-solid fa-temperature-high"></i> Temperature Sensor</div> <span id="stTemp" style="color: var(--amber);">Waiting...</span></div>
+          <div class="device-item"><div class="device-name"><i class="fa-solid fa-location-dot"></i> GPS Module</div> <span id="stGps" style="color: var(--amber);">Waiting...</span></div>
+          <div class="device-item"><div class="device-name"><i class="fa-solid fa-person-running"></i> MPU6050 Motion</div> <span id="stMotion" style="color: var(--amber);">Waiting...</span></div>
+          <div class="device-item"><div class="device-name"><i class="fa-solid fa-temperature-high"></i> BME280 Sensor</div> <span id="stTemp" style="color: var(--amber);">Waiting...</span></div>
           <div class="device-item"><div class="device-name"><i class="fa-solid fa-wifi"></i> Internet</div> <span id="stNet" style="color: var(--amber);">Waiting...</span></div>
         </div>
         <div class="signal-bar-box">
@@ -530,7 +518,7 @@
         <div class="card-title">Event / Alert History</div>
         <div class="table-container">
           <table>
-            <thead><tr><th>TIME</th><th>EVENT</th><th>STATUS</th><th>VALUE</th></tr></thead>
+            <thead><tr><th>TIME</th><th>EVENT</th><th>STATUS</th><th>MOTION / TEMP</th></tr></thead>
             <tbody id="eventLogTable">
               <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Awaiting realtime sensor data...</td></tr>
             </tbody>
@@ -553,7 +541,6 @@
   </main>
 
   <script>
-    // Audio Alarm Web Audio API Synthesizer
     let audioEnabled = false;
     let audioCtx = null;
 
@@ -592,12 +579,10 @@
       osc.stop(audioCtx.currentTime + 0.5);
     }
 
-    // Theme Switcher Feature
     function toggleTheme() {
       document.body.classList.toggle('light-theme');
     }
 
-    // Sidebar Navigation Control
     const menuBtn = document.getElementById('menuBtn');
     const sidebar = document.getElementById('sidebar');
     menuBtn.addEventListener('click', (e) => { e.stopPropagation(); sidebar.classList.toggle('open'); });
@@ -605,15 +590,12 @@
       if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== menuBtn) sidebar.classList.remove('open');
     });
 
-    // Live Clock
     setInterval(() => { document.getElementById('liveClock').innerText = new Date().toLocaleTimeString(); }, 1000);
 
-    // Leaflet Map
     const map = L.map('map', { zoomControl: false }).setView([22.3569, 91.7832], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     let workerMarker = null;
 
-    // Sparklines
     const sparklineInstances = {};
     function createSparkline(id, color, bgGradientColor) {
       const ctx = document.getElementById(id).getContext('2d');
@@ -631,7 +613,6 @@
     createSparkline('tempSpark', '#ff3366', 'rgba(255, 51, 102, 0.35)');
     createSparkline('humSpark', '#00f2ff', 'rgba(0, 242, 255, 0.35)');
     createSparkline('presSpark', '#a855f7', 'rgba(168, 85, 247, 0.35)');
-    createSparkline('gasSpark', '#eab308', 'rgba(234, 179, 8, 0.35)');
 
     function updateSparkline(id, val) {
       const chart = sparklineInstances[id];
@@ -645,7 +626,6 @@
       chart.update();
     }
 
-    // Main Live Chart
     const mainChartCtx = document.getElementById('mainChart').getContext('2d');
     const mainChart = new Chart(mainChartCtx, {
       type: 'line',
@@ -664,7 +644,7 @@
       }
     });
 
-// FIREBASE REALTIME CONNECTION
+    // FIREBASE REALTIME CONNECTION
     const firebaseConfig = {
       apiKey: "AIzaSyDJl0vyF4mLdMVfIll9bdDXgA9GB0jc7RY",
       authDomain: "worker-safety-vest-92b97.firebaseapp.com",
@@ -682,7 +662,6 @@
 
     let isConnected = false;
 
-    // ESP32 থেকে পাঠানো '/worker1' পাথ শোনানো হচ্ছে
     db.ref('/worker1').on('value', (snapshot) => {
       const data = snapshot.val();
       if (!data) return;
@@ -705,7 +684,7 @@
 
         document.getElementById('stEsp32').innerText = 'Connected'; document.getElementById('stEsp32').style.color = 'var(--green)';
         document.getElementById('stGps').innerText = 'Connected'; document.getElementById('stGps').style.color = 'var(--green)';
-        document.getElementById('stGas').innerText = 'Connected'; document.getElementById('stGas').style.color = 'var(--green)';
+        document.getElementById('stMotion').innerText = 'Connected'; document.getElementById('stMotion').style.color = 'var(--green)';
         document.getElementById('stTemp').innerText = 'Connected'; document.getElementById('stTemp').style.color = 'var(--green)';
         document.getElementById('stNet').innerText = 'Connected'; document.getElementById('stNet').style.color = 'var(--green)';
         document.getElementById('rssiVal').innerText = '-60 dBm';
@@ -720,9 +699,8 @@
 
       let isHazard = false;
 
-      // 1. Temperature, Humidity, Pressure (Environment Sub-node)
+      // 1. Environment (BME280)
       if (data.environment) {
-        // Temperature
         if (data.environment.temperature !== undefined) {
           const val = Number(data.environment.temperature);
           document.getElementById('tempVal').innerText = val.toFixed(1);
@@ -745,7 +723,6 @@
           mainChart.update();
         }
 
-        // Humidity
         if (data.environment.humidity !== undefined) {
           document.getElementById('humVal').innerText = Number(data.environment.humidity).toFixed(1);
           document.getElementById('humStatus').innerText = 'Normal';
@@ -753,7 +730,6 @@
           updateSparkline('humSpark', Number(data.environment.humidity));
         }
 
-        // Pressure
         if (data.environment.pressure !== undefined) {
           document.getElementById('presVal').innerText = Number(data.environment.pressure).toFixed(0);
           document.getElementById('presStatus').innerText = 'Normal';
@@ -762,10 +738,59 @@
         }
       }
 
-      // 2. Battery (Battery Sub-node)
+      // 2. Motion Status (MPU6050 Motion Updates)
+      if (data.status && data.status.motion_state) {
+        const state = data.status.motion_state;
+        document.getElementById('motionStateVal').innerText = state;
+
+        const iconEl = document.getElementById('motionIcon');
+        if (state === "Walking") {
+          iconEl.className = "fa-solid fa-person-walking";
+        } else if (state === "Running") {
+          iconEl.className = "fa-solid fa-person-running";
+        } else if (state === "Lying Down") {
+          iconEl.className = "fa-solid fa-bed";
+        } else {
+          iconEl.className = "fa-solid fa-person";
+        }
+      }
+
+      // 3. Alerts (Fall Detected & SOS Alert)
+      if (data.alerts) {
+        const fallBadge = document.getElementById('fallBadge');
+        const fallStatus = document.getElementById('fallAlertStatus');
+        if (data.alerts.fall_detected) {
+          fallStatus.innerText = "FALL DETECTED!";
+          fallStatus.style.color = "var(--red)";
+          fallBadge.className = "badge badge-alert";
+          fallBadge.innerText = "FALL ALERT";
+          isHazard = true;
+        } else {
+          fallStatus.innerText = "Motion Normal";
+          fallStatus.style.color = "var(--green)";
+          fallBadge.className = "badge badge-safe";
+          fallBadge.innerText = "NO FALL";
+        }
+
+        const sosBadge = document.getElementById('sosBadge');
+        const sosStatus = document.getElementById('sosAlertStatus');
+        if (data.alerts.sos_active) {
+          sosStatus.innerText = "SOS Emergency Active!";
+          sosStatus.style.color = "var(--red)";
+          sosBadge.className = "badge badge-alert";
+          sosBadge.innerText = "SOS ACTIVE";
+          isHazard = true;
+        } else {
+          sosStatus.innerText = "SOS: Inactive";
+          sosStatus.style.color = "var(--text-muted)";
+          sosBadge.className = "badge badge-safe";
+          sosBadge.innerText = "SOS NORMAL";
+        }
+      }
+
+      // 4. Battery Voltage to % Conversion
       if (data.battery && data.battery.voltage !== undefined) {
         const volt = Number(data.battery.voltage);
-        // Calculate Percentage (Assuming 3.0V to 4.2V range)
         let pct = Math.round(((volt - 3.0) / 1.2) * 100);
         if (pct > 100) pct = 100;
         if (pct < 0) pct = 0;
@@ -780,7 +805,7 @@
         document.getElementById('battEst').innerText = `Est. ${Math.round((pct/100)*6)}h`;
       }
 
-      // 3. Map GPS Tracking (GPS Sub-node)
+      // 5. GPS Tracking
       if (data.gps && data.gps.latitude && data.gps.longitude) {
         const lat = Number(data.gps.latitude);
         const lng = Number(data.gps.longitude);
@@ -792,26 +817,20 @@
         }
       }
 
-      // 4. Alerts & Hazards (Alerts Sub-node)
-      if (data.alerts) {
-        if (data.alerts.fall_detected || data.alerts.sos_active) {
-          isHazard = true;
-        }
-      }
-
       if (isHazard) {
         playEmergencySound();
       }
 
-      // Append Log Entry
+      // Log Table Entry
       const eventTable = document.getElementById('eventLogTable');
       const newRow = document.createElement('tr');
       const tempText = data.environment ? data.environment.temperature : '--';
+      const motionText = data.status ? data.status.motion_state : '--';
       newRow.innerHTML = `
         <td>${timeStr}</td>
-        <td>${isHazard ? 'Hazard Alert' : 'Packet Sync'}</td>
+        <td>${isHazard ? 'Hazard/Fall Alert' : 'Packet Sync'}</td>
         <td><span class="badge ${isHazard ? 'badge-alert' : 'badge-safe'}">${isHazard ? 'ALERT' : 'SAFE'}</span></td>
-        <td>Temp: ${tempText} °C</td>
+        <td>${motionText} | ${tempText} °C</td>
       `;
       eventTable.insertBefore(newRow, eventTable.firstChild);
       if (eventTable.children.length > 5) eventTable.removeChild(eventTable.lastChild);
