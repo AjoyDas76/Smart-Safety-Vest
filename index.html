@@ -16,6 +16,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
     :root {
@@ -554,9 +555,28 @@
 
     function toggleTheme() { document.body.classList.toggle('light-theme'); }
 
-    // ===================== Export Worker Data =====================
-    // Fetches the full '/worker1' node from Firebase Realtime Database
-    // and triggers a browser download of the raw JSON data.
+    // ===================== Export Worker Data (Excel) =====================
+    // Fetches the full '/worker1' node from Firebase Realtime Database,
+    // flattens it into a readable table, and triggers a browser download
+    // of an .xlsx file using SheetJS.
+
+    // Recursively flattens a nested object into "Field | Value" rows.
+    // Nested keys are joined with " > " so the sheet stays readable
+    // (e.g. "environment > temperature").
+    function flattenForExport(obj, prefix, rows) {
+      Object.keys(obj).forEach((key) => {
+        const value = obj[key];
+        const label = prefix ? `${prefix} > ${key}` : key;
+        if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+          flattenForExport(value, label, rows);
+        } else if (Array.isArray(value)) {
+          rows.push([label, JSON.stringify(value)]);
+        } else {
+          rows.push([label, value]);
+        }
+      });
+    }
+
     function exportWorkerData() {
       const exportBtn = document.getElementById('exportBtn');
       const originalHtml = exportBtn.innerHTML;
@@ -571,25 +591,28 @@
             return;
           }
 
-          const exportPayload = {
-            exported_at: new Date().toISOString(),
-            worker_id: 'SV-001',
-            vest_id: 'VEST-001',
-            data: data
-          };
+          // Build the data rows
+          const rows = [];
+          flattenForExport(data, '', rows);
 
-          const jsonStr = JSON.stringify(exportPayload, null, 2);
-          const blob = new Blob([jsonStr], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
+          const nowStr = new Date().toLocaleString();
+          const sheetData = [
+            ['Worker ID', 'SV-001'],
+            ['Vest ID', 'VEST-001'],
+            ['Exported At', nowStr],
+            [],
+            ['Field', 'Value'],
+            ...rows
+          ];
+
+          const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
+          worksheet['!cols'] = [{ wch: 30 }, { wch: 30 }];
+
+          const workbook = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(workbook, worksheet, 'Worker1 Data');
 
           const dateStamp = new Date().toISOString().replace(/[:.]/g, '-');
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `worker1_data_${dateStamp}.json`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
+          XLSX.writeFile(workbook, `worker1_data_${dateStamp}.xlsx`);
         })
         .catch((err) => {
           console.error('[Export] Firebase read FAILED:', err.message);
