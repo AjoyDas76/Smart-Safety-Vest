@@ -557,72 +557,112 @@
 
     // ===================== Export Worker Data (Excel) =====================
     // Fetches the full '/worker1' node from Firebase Realtime Database,
-    // flattens it into a readable table, and triggers a browser download
-    // of an .xlsx file using SheetJS.
+    // ===================== Export Worker Data History (Excel) =====================
+    // Firebase Realtime Database only ever holds the CURRENT snapshot at
+    // '/worker1' — it doesn't keep past values. So to export "last 5/10"
+    // readings, we build our own rolling history on the client: every time
+    // a new snapshot streams in (processIncomingData), we flatten it and
+    // push it into `dataHistory`, capped at MAX_HISTORY entries.
 
-    // Recursively flattens a nested object into "Field | Value" rows.
-    // Nested keys are joined with " > " so the sheet stays readable
-    // (e.g. "environment > temperature").
-    function flattenForExport(obj, prefix, rows) {
+    const MAX_HISTORY = 10; // keeps up to the last 10 readings in memory
+    let dataHistory = [];
+
+    // Recursively flattens a nested object into a flat { "a > b": value } map,
+    // e.g. { environment: { temperature: 30 } } -> { "environment > temperature": 30 }
+    function flattenToObject(obj, prefix, result) {
       Object.keys(obj).forEach((key) => {
         const value = obj[key];
         const label = prefix ? `${prefix} > ${key}` : key;
         if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
-          flattenForExport(value, label, rows);
+          flattenToObject(value, label, result);
         } else if (Array.isArray(value)) {
-          rows.push([label, JSON.stringify(value)]);
+          result[label] = JSON.stringify(value);
         } else {
-          rows.push([label, value]);
+          result[label] = value;
         }
       });
     }
 
+    // Called from processIncomingData() on every new reading.
+    function recordHistorySnapshot(data) {
+      const flat = {};
+      flattenToObject(data, '', flat);
+
+      const last = dataHistory[dataHistory.length - 1];
+      // Skip if identical to the last recorded reading (avoids duplicate
+      // rows since both the realtime listener and the 2s polling interval
+      // can fire for the same underlying value).
+      if (last && JSON.stringify(last.fields) === JSON.stringify(flat)) return;
+
+      dataHistory.push({ timestamp: new Date().toLocaleString(), fields: flat });
+      if (dataHistory.length > MAX_HISTORY) dataHistory.shift();
+    }
+
     function exportWorkerData() {
+      if (dataHistory.length === 0) {
+        alert('এক্সপোর্ট করার জন্য এখনো কোনো ডাটা রেকর্ড হয়নি।\nপেজটি একটু সময় ধরে খোলা রাখুন যাতে সাম্প্রতিক রিডিং জমা হতে পারে, তারপর আবার চেষ্টা করুন।');
+        return;
+      }
+
+      const maxAvailable = dataHistory.length;
+      const defaultCount = Math.min(10, maxAvailable);
+      const input = prompt(
+        `সাম্প্রতিক কতগুলো রিডিং এক্সপোর্ট করতে চান? (এখন পর্যন্ত সর্বোচ্চ ${maxAvailable}টি জমা আছে)`,
+        String(defaultCount)
+      );
+      if (input === null) return; // user cancelled
+
+      let count = parseInt(input, 10);
+      if (isNaN(count) || count <= 0) count = defaultCount;
+      count = Math.min(count, maxAvailable);
+
       const exportBtn = document.getElementById('exportBtn');
       const originalHtml = exportBtn.innerHTML;
       exportBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Exporting...';
       exportBtn.disabled = true;
 
-      db.ref('/worker1').once('value')
-        .then((snapshot) => {
-          const data = snapshot.val();
-          if (!data) {
-            alert('এক্সপোর্ট করার জন্য কোনো ডাটা পাওয়া যায়নি।');
-            return;
-          }
+      try {
+        const selectedEntries = dataHistory.slice(-count);
 
-          // Build the data rows
-          const rows = [];
-          flattenForExport(data, '', rows);
-
-          const nowStr = new Date().toLocaleString();
-          const sheetData = [
-            ['Worker ID', 'SV-001'],
-            ['Vest ID', 'VEST-001'],
-            ['Exported At', nowStr],
-            [],
-            ['Field', 'Value'],
-            ...rows
-          ];
-
-          const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
-          worksheet['!cols'] = [{ wch: 30 }, { wch: 30 }];
-
-          const workbook = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(workbook, worksheet, 'Worker1 Data');
-
-          const dateStamp = new Date().toISOString().replace(/[:.]/g, '-');
-          XLSX.writeFile(workbook, `worker1_data_${dateStamp}.xlsx`);
-        })
-        .catch((err) => {
-          console.error('[Export] Firebase read FAILED:', err.message);
-          alert('ডাটা এক্সপোর্ট করতে ব্যর্থ হয়েছে:\n' + err.message +
-                '\n\n(সাধারণত এটা Firebase Realtime Database rules-এর কারণে হয়ে থাকে - console-এ বিস্তারিত দেখুন)');
-        })
-        .finally(() => {
-          exportBtn.innerHTML = originalHtml;
-          exportBtn.disabled = false;
+        // Union of all field labels across selected entries, in first-seen order
+        const fieldLabels = [];
+        selectedEntries.forEach((entry) => {
+          Object.keys(entry.fields).forEach((label) => {
+            if (!fieldLabels.includes(label)) fieldLabels.push(label);
+          });
         });
+
+        const header = ['Timestamp', ...fieldLabels];
+        const dataRows = selectedEntries.map((entry) => [
+          entry.timestamp,
+          ...fieldLabels.map((label) => (entry.fields[label] !== undefined ? entry.fields[label] : ''))
+        ]);
+
+        const sheetData = [
+          ['Worker ID', 'SV-001'],
+          ['Vest ID', 'VEST-001'],
+          ['Exported At', new Date().toLocaleString()],
+          ['Records Exported', String(selectedEntries.length)],
+          [],
+          header,
+          ...dataRows
+        ];
+
+        const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
+        worksheet['!cols'] = [{ wch: 20 }, ...fieldLabels.map(() => ({ wch: 22 }))];
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Worker1 History');
+
+        const dateStamp = new Date().toISOString().replace(/[:.]/g, '-');
+        XLSX.writeFile(workbook, `worker1_history_${dateStamp}.xlsx`);
+      } catch (err) {
+        console.error('[Export] Excel generation FAILED:', err.message);
+        alert('এক্সপোর্ট তৈরি করতে ব্যর্থ হয়েছে:\n' + err.message);
+      } finally {
+        exportBtn.innerHTML = originalHtml;
+        exportBtn.disabled = false;
+      }
     }
 
     const menuBtn = document.getElementById('menuBtn');
@@ -893,6 +933,9 @@
       `;
       eventTable.insertBefore(newRow, eventTable.firstChild);
       if (eventTable.children.length > 5) eventTable.removeChild(eventTable.lastChild);
+
+      // Save this reading into the rolling history buffer used by Export
+      recordHistorySnapshot(data);
     }
 
     // 1. Primary Realtime Listener
