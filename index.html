@@ -20,9 +20,10 @@
   <style>
     :root {
       --bg-gradient: radial-gradient(circle at 50% 10%, #0d1b2a 0%, #050b14 100%);
-      --card-bg: rgba(13, 25, 44, 0.75);
-      --card-border: rgba(0, 242, 255, 0.15);
-      --card-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      --glass-bg: rgba(13, 25, 44, 0.45);
+      --glass-border: rgba(0, 242, 255, 0.25);
+      --glass-shine: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.01) 100%);
+      --card-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
       --cyan: #00f2ff;
       --cyan-glow: rgba(0, 242, 255, 0.3);
       --green: #10b981;
@@ -47,9 +48,10 @@
     /* Side Navigation Bar */
     aside {
       width: 240px;
-      background: rgba(6, 12, 23, 0.85);
-      border-right: 1px solid var(--card-border);
-      backdrop-filter: blur(16px);
+      background: rgba(6, 12, 23, 0.65);
+      border-right: 1px solid var(--glass-border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       display: flex;
       flex-direction: column;
       padding: 16px 12px;
@@ -88,10 +90,11 @@
       transition: all 0.25s ease;
     }
     .nav-item.active a, .nav-item a:hover {
-      background: rgba(0, 242, 255, 0.08);
+      background: rgba(0, 242, 255, 0.12);
       color: #fff;
-      border: 1px solid var(--card-border);
-      box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 0 15px rgba(0, 242, 255, 0.15);
+      backdrop-filter: blur(10px);
     }
 
     /* Main Dashboard Layout */
@@ -104,11 +107,25 @@
       overflow-y: auto;
     }
 
+    /* Glassmorphism Generic Card Styling */
+    .card {
+      background: var(--glass-shine), var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px; padding: 14px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: var(--card-glow); position: relative;
+    }
+
     /* Top Navigation Header */
     header {
       display: flex; justify-content: space-between; align-items: center;
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 10px; padding: 10px 20px; backdrop-filter: blur(12px);
+      background: var(--glass-shine), var(--glass-bg); 
+      border: 1px solid var(--glass-border);
+      border-radius: 10px; padding: 10px 20px; 
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: var(--card-glow);
     }
     .header-left { display: flex; align-items: center; gap: 16px; }
     .nav-toggle { color: var(--text-muted); font-size: 18px; cursor: pointer; }
@@ -117,11 +134,11 @@
     .status-badge {
       display: inline-flex; align-items: center; gap: 6px; font-size: 11px;
       font-family: 'Orbitron', sans-serif; color: var(--amber);
-      background: rgba(245, 158, 11, 0.1); padding: 4px 12px; border-radius: 20px;
-      border: 1px solid rgba(245, 158, 11, 0.3); margin-left: 12px;
+      background: rgba(245, 158, 11, 0.15); padding: 4px 12px; border-radius: 20px;
+      border: 1px solid rgba(245, 158, 11, 0.4); margin-left: 12px;
     }
     .status-badge.connected {
-      color: var(--green); background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);
+      color: var(--green); background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4);
     }
 
     .header-right { display: flex; align-items: center; gap: 20px; font-size: 12px; }
@@ -129,11 +146,6 @@
 
     /* Layout Rows & Cards */
     .row { display: flex; gap: 12px; width: 100%; }
-    .card {
-      background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 12px; padding: 14px; backdrop-filter: blur(16px);
-      box-shadow: var(--card-glow); position: relative;
-    }
     .card-title {
       font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 700;
       color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
@@ -158,8 +170,8 @@
     .system-text p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
     .sos-card {
-      flex: 0.8; background: radial-gradient(circle at center, rgba(255,0,85,0.2) 0%, rgba(13,25,44,0.9) 100%);
-      border: 1px solid var(--red); text-align: center; display: flex; flex-direction: column;
+      flex: 0.8; background: radial-gradient(circle at center, rgba(255,0,85,0.25) 0%, rgba(13,25,44,0.6) 100%);
+      border: 1px solid rgba(255,0,85,0.6); text-align: center; display: flex; flex-direction: column;
       align-items: center; justify-content: center; cursor: pointer;
     }
     .sos-btn {
@@ -176,8 +188,8 @@
     .worker-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 20px; font-size: 11px; width: 100%; }
     .worker-details span { color: var(--text-muted); }
 
-    /* Sensor Grid */
-    .sensor-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; width: 100%; }
+    /* Sensor Grid - Modified to 3 Columns x 2 Rows */
+    .sensor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; }
     .sensor-card { height: 130px; display: flex; flex-direction: column; justify-content: space-between; }
     .sensor-header { display: flex; justify-content: space-between; align-items: center; }
     .sensor-title { font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
@@ -206,7 +218,7 @@
     .badge-high { background: rgba(255,0,85,0.15); color: var(--red); border: 1px solid var(--red); }
 
     /* Alert Banner Card */
-    .alert-card { border: 1px solid var(--red); background: rgba(255,0,85,0.05); }
+    .alert-card { border: 1px solid rgba(255,0,85,0.5); background: rgba(255,0,85,0.08); }
     .alert-count { background: var(--red); color: #fff; font-size: 9px; padding: 1px 6px; border-radius: 10px; }
 
     /* Footer Navigation Line */
@@ -283,7 +295,7 @@
       </div>
     </div>
 
-    <!-- Sensor Metrics Grid -->
+    <!-- Sensor Metrics Grid (Row 1: Temp, Hum, Pres | Row 2: Gas, Heart Rate, Battery) -->
     <div class="sensor-grid">
       <div class="card sensor-card">
         <div class="sensor-header"><span class="sensor-title">Temperature</span><i class="fa-solid fa-temperature-half sensor-icon"></i></div>
@@ -374,7 +386,7 @@
         <div class="card-title">
           <span>Event / Alert History</span>
           <div>
-            <button style="background: transparent; border: 1px solid var(--card-border); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 9px; cursor: pointer;"><i class="fa-solid fa-download"></i> Export Log</button>
+            <button style="background: transparent; border: 1px solid var(--glass-border); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 9px; cursor: pointer;"><i class="fa-solid fa-download"></i> Export Log</button>
             <button style="background: rgba(255,0,85,0.2); border: 1px solid var(--red); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 9px; cursor: pointer;"><i class="fa-solid fa-trash"></i> Clear Log</button>
           </div>
         </div>
