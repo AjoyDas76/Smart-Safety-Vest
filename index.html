@@ -815,22 +815,18 @@
 let isSosActive = false;
 
 function triggerSOS() {
-  isSosActive = !isSosActive;
-  
-  if (isSosActive) {
-    playEmergencySound();
-  }
+  // সরাসরি ফায়ারবেস ডাটাবেস থেকে বর্তমান মান তুলে নিয়ে টগল করা
+  db.ref('/worker1/alerts/sos_active').once('value').then((snapshot) => {
+    let currentState = snapshot.val() || false;
+    let newState = !currentState;
 
-  // ফায়ারবেসে স্ট্যাটাস টগল করা
-  db.ref('/worker1/alerts').update({ sos_active: isSosActive });
-  
-  // বাটনের ভিজ্যুয়াল ব্যাকগ্রাউন্ড পরিবর্তন (ঐচ্ছিক)
-  const sosCard = document.querySelector('.sos-card');
-  if (isSosActive) {
-    sosCard.style.boxShadow = "0 0 25px #ff3366";
-  } else {
-    sosCard.style.boxShadow = "none";
-  }
+    if (newState) {
+      playEmergencySound();
+    }
+
+    db.ref('/worker1/alerts').update({ sos_active: newState });
+    alert(newState ? 'SOS Activated!' : 'SOS Deactivated!');
+  });
 }
   </script>
 </body>
