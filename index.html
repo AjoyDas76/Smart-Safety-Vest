@@ -279,7 +279,9 @@
     .signal-bar-box { margin-top: 10px; border-top: 1px solid var(--border-subtle); padding-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
 
     .chart-box { height: 200px; position: relative; width: 100%; }
-    #map { height: 200px; width: 100%; border-radius: 8px; filter: invert(100%) hue-rotate(190deg) brightness(90%) contrast(110%); }
+    
+    /* Satellite View Map Style - CSS Invert Filter Removed */
+    #map { height: 200px; width: 100%; border-radius: 8px; }
 
     .table-container { width: 100%; overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 280px; }
@@ -433,7 +435,7 @@
         <div class="sparkline-box-v2"><canvas id="presSpark"></canvas></div>
       </div>
 
-      <!-- Worker Motion & Safety Status Card (Replaced Gas Sensor) -->
+      <!-- Worker Motion & Safety Status Card -->
       <div class="sensor-card-v2 glass-panel">
         <div class="sensor-body-v2">
           <div class="sensor-icon-box" id="motionIconBox" style="color: var(--yellow); filter: drop-shadow(0 0 6px rgba(234,179,8,0.6));">
@@ -498,7 +500,7 @@
       </div>
 
       <div class="card glass-panel col-flex-1-5">
-        <div class="card-title">Live Location Tracking</div>
+        <div class="card-title">Live Location Tracking (Satellite)</div>
         <div id="map"></div>
       </div>
     </div>
@@ -592,8 +594,13 @@
 
     setInterval(() => { document.getElementById('liveClock').innerText = new Date().toLocaleTimeString(); }, 1000);
 
-    const map = L.map('map', { zoomControl: false }).setView([22.3569, 91.7832], 14);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    // High-Resolution Satellite Map Layer Integration
+    const map = L.map('map', { zoomControl: false }).setView([22.3569, 91.7832], 15);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+      maxZoom: 19
+    }).addTo(map);
+
     let workerMarker = null;
 
     const sparklineInstances = {};
@@ -805,14 +812,17 @@
         document.getElementById('battEst').innerText = `Est. ${Math.round((pct/100)*6)}h`;
       }
 
-      // 5. GPS Tracking
+      // 5. GPS Satellite Tracking Update
       if (data.gps && data.gps.latitude && data.gps.longitude) {
         const lat = Number(data.gps.latitude);
         const lng = Number(data.gps.longitude);
         if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
           const coords = [lat, lng];
-          if (!workerMarker) workerMarker = L.marker(coords).addTo(map);
-          else workerMarker.setLatLng(coords);
+          if (!workerMarker) {
+            workerMarker = L.marker(coords).addTo(map);
+          } else {
+            workerMarker.setLatLng(coords);
+          }
           map.panTo(coords);
         }
       }
