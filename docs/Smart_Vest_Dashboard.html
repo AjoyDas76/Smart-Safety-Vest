@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Safety Vest — Tactical Operations Center v3.0</title>
+
+  <!-- Google Fonts & Leaflet -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  
+  <!-- Firebase & Leaflet SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #020617;
+      --card-bg: rgba(15, 23, 42, 0.8);
+      --border-color: rgba(56, 189, 248, 0.2);
+      --cyan-glow: #00f2ff;
+      --green-glow: #10b981;
+      --red-glow: #ff0055;
+      --amber-glow: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      padding: 20px;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.05) 0%, transparent 70%),
+        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 30px 30px, 30px 30px;
+    }
+
+    /* Top Command Nav */
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 24px; background: var(--card-bg); backdrop-filter: blur(20px);
+      border: 1px solid var(--border-color); border-radius: 16px; margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .brand-title {
+      font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 800;
+      letter-spacing: 2px;
+      background: linear-gradient(90deg, #fff, var(--cyan-glow));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav-controls { display: flex; align-items: center; gap: 15px; }
+    
+    .btn-action {
+      background: rgba(255,255,255,0.05); border: 1px solid var(--border-color);
+      color: #fff; padding: 8px 16px; border-radius: 8px; font-weight: 600;
+      cursor: pointer; transition: all 0.3s; font-size: 12px; letter-spacing: 1px;
+    }
+    .btn-action:hover { background: var(--cyan-glow); color: #000; box-shadow: 0 0 15px var(--cyan-glow); }
+
+    /* Grid Layout */
+    .dashboard-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+
+    .card {
+      background: var(--card-bg); backdrop-filter: blur(20px);
+      border: 1px solid var(--border-color); border-radius: 16px; padding: 20px;
+      position: relative; overflow: hidden;
+    }
+    .card-title {
+      font-size: 11px; font-weight: 700; color: var(--text-muted);
+      text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;
+    }
+    .value-display {
+      font-family: 'Orbitron', sans-serif; font-size: 32px; font-weight: 800; color: #fff;
+    }
+    .unit { font-size: 13px; color: var(--cyan-glow); margin-left: 2px; }
+
+    /* Custom Progress Gauges */
+    .gauge-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-top: 12px; overflow: hidden; }
+    .gauge-fill { height: 100%; background: var(--cyan-glow); width: 0%; transition: width 0.5s ease; box-shadow: 0 0 10px var(--cyan-glow); }
+
+    /* Motion Tag */
+    .motion-tag {
+      font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 800;
+      padding: 6px 14px; border-radius: 6px; background: rgba(0, 242, 255, 0.1);
+      color: var(--cyan-glow); border: 1px solid var(--cyan-glow); display: inline-block;
+    }
+
+    /* Threat Alert Card */
+    .alert-card.danger {
+      background: rgba(255, 0, 85, 0.15) !important; border-color: var(--red-glow) !important;
+      box-shadow: 0 0 40px rgba(255, 0, 85, 0.4) !important; animation: blink 0.8s infinite alternate;
+    }
+    .alert-title { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 800; color: var(--green-glow); }
+    .alert-card.danger .alert-title { color: var(--red-glow) !important; }
+
+    /* Live Telemetry Terminal Logs */
+    .log-container {
+      height: 120px; overflow-y: auto; font-family: monospace; font-size: 11px;
+      color: var(--cyan-glow); background: rgba(0,0,0,0.5); padding: 10px;
+      border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-top: 10px;
+    }
+    .log-item { margin-bottom: 4px; opacity: 0.8; }
+
+    /* GIS Tactical Map */
+    #map {
+      height: 400px; width: 100%; border-radius: 12px;
+      filter: invert(100%) hue-rotate(190deg) brightness(90%) contrast(110%);
+    }
+
+    /* Grid Spans */
+    .col-3 { grid-column: span 3; }
+    .col-4 { grid-column: span 4; }
+    .col-6 { grid-column: span 6; }
+    .col-8 { grid-column: span 8; }
+    .col-12 { grid-column: span 12; }
+
+    @media (max-width: 1024px) { .col-3, .col-4 { grid-column: span 6; } .col-8, .col-6 { grid-column: span 12; } }
+    @media (max-width: 640px) { .col-3, .col-4, .col-6, .col-8 { grid-column: span 12; } }
+
+    @keyframes blink { from { opacity: 0.7; } to { opacity: 1; } }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand-title">VEST COMMAND // TACTICAL v3.0</div>
+    <div class="nav-controls">
+      <button class="btn-action" onclick="toggleAudio()">AUDIO: OFF</button>
+      <button class="btn-action" style="border-color: var(--amber-glow); color: var(--amber-glow);" onclick="downloadLogs()">EXPORT REPORT</button>
+    </div>
+  </header>
+
+  <div class="dashboard-grid">
+    
+    <!-- Environment Telemetry -->
+    <div class="card col-3">
+      <div class="card-title">Temperature</div>
+      <div class="value-display"><span id="temp">0.0</span><span class="unit">°C</span></div>
+      <div class="gauge-bar"><div class="gauge-fill" id="tempBar"></div></div>
+    </div>
+
+    <div class="card col-3">
+      <div class="card-title">Humidity</div>
+      <div class="value-display"><span id="hum">0.0</span><span class="unit">%</span></div>
+      <div class="gauge-bar"><div class="gauge-fill" id="humBar"></div></div>
+    </div>
+
+    <div class="card col-3">
+      <div class="card-title">Barometric Pressure</div>
+      <div class="value-display"><span id="pres">0.0</span><span class="unit">hPa</span></div>
+      <div class="gauge-bar"><div class="gauge-fill" id="presBar"></div></div>
+    </div>
+
+    <div class="card col-3">
+      <div class="card-title">Power Module</div>
+      <div class="value-display"><span id="batt">0.00</span><span class="unit">V</span></div>
+      <div class="gauge-bar"><div class="gauge-fill" id="battBar" style="background: var(--green-glow);"></div></div>
+    </div>
+
+    <!-- Kinematics & Emergency Engine -->
+    <div class="card col-4">
+      <div class="card-title">Worker Kinematics State</div>
+      <div style="margin-top: 10px;"><span class="motion-tag" id="motion">OFFLINE</span></div>
+    </div>
+
+    <div class="card col-8 alert-card" id="alertCard">
+      <div class="card-title">Threat Assessment & Alert Engine</div>
+      <div class="alert-title" id="alert">SYSTEM NORMAL — ALL METRICS SECURE</div>
+    </div>
+
+    <!-- Live Telemetry Terminal Logs -->
+    <div class="card col-6">
+      <div class="card-title">Realtime System Stream Log</div>
+      <div class="log-container" id="terminalLog">
+        <div class="log-item">> System Initialized... Waiting for gateway packet.</div>
+      </div>
+    </div>
+
+    <!-- Live Tactical Map -->
+    <div class="card col-6">
+      <div class="card-title">Geographic Coordinates (NEO-M8N)</div>
+      <div id="map"></div>
+    </div>
+
+  </div>
+
+  <script>
+    // 1. Firebase Credentials Setup
+    const firebaseConfig = {
+      apiKey: "AIzaSyDJl0vyF4mLdMVfIll9bdDXgA9GB0jc7RY",
+      databaseURL: "https://worker-safety-vest-92b97-default-rtdb.firebaseio.com//"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Audio Alert Engine Setup (Web Audio API)
+    let audioEnabled = false;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      event.target.innerText = audioEnabled ? "AUDIO: ACTIVE 🔊" : "AUDIO: OFF 🔇";
+      if(audioEnabled && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function triggerSiren() {
+      if(!audioEnabled) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.5);
+      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.5);
+    }
+
+    // 2. Map Canvas Setup
+    const map = L.map('map', { zoomControl: false }).setView([22.3569, 91.7832], 15);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    const customIcon = L.divIcon({
+      className: 'radar-pin',
+      html: `<div style="width: 18px; height: 18px; background: #00f2ff; border: 3px solid #020617; border-radius: 50%; box-shadow: 0 0 20px #00f2ff;"></div>`,
+      iconSize: [18, 18]
+    });
+
+    const marker = L.marker([22.3569, 91.7832], { icon: customIcon }).addTo(map);
+
+    // Terminal Logger
+    let logHistory = [];
+    function addLog(msg) {
+      const time = new Date().toLocaleTimeString();
+      const logBox = document.getElementById('terminalLog');
+      const logEntry = `[${time}] ${msg}`;
+      logHistory.push(logEntry);
+      
+      const div = document.createElement('div');
+      div.className = 'log-item';
+      div.innerText = `> ${logEntry}`;
+      logBox.appendChild(div);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    function downloadLogs() {
+      const blob = new Blob([logHistory.join('\n')], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Safety_Vest_Telemetry_${Date.now()}.txt`;
+      a.click();
+    }
+
+    // 3. Realtime Firebase Processor
+    db.ref('/worker1').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if(!data) return;
+
+      // Sensors & Progress Gauges
+      if(data.environment) {
+        const t = data.environment.temperature || 0;
+        const h = data.environment.humidity || 0;
+        const p = data.environment.pressure || 0;
+
+        document.getElementById('temp').innerText = t.toFixed(1);
+        document.getElementById('hum').innerText = h.toFixed(1);
+        document.getElementById('pres').innerText = p.toFixed(1);
+
+        document.getElementById('tempBar').style.width = Math.min((t / 60) * 100, 100) + '%';
+        document.getElementById('humBar').style.width = Math.min(h, 100) + '%';
+        document.getElementById('presBar').style.width = Math.min((p / 1100) * 100, 100) + '%';
+      }
+
+      if(data.status) {
+        document.getElementById('motion').innerText = (data.status.motion_state || 'UNKNOWN').toUpperCase();
+      }
+
+      if(data.battery) {
+        const v = data.battery.voltage || 0;
+        document.getElementById('batt').innerText = v.toFixed(2);
+        document.getElementById('battBar').style.width = Math.min((v / 4.2) * 100, 100) + '%';
+      }
+
+      // Coordinates
+      if(data.gps && data.gps.latitude && data.gps.longitude) {
+        const lat = data.gps.latitude;
+        const lng = data.gps.longitude;
+        if(lat !== 0 && lng !== 0) {
+          marker.setLatLng([lat, lng]);
+          map.panTo([lat, lng]);
+        }
+      }
+
+      // Threat Assessment Engine
+      const alertCard = document.getElementById('alertCard');
+      const alertTxt = document.getElementById('alert');
+      const fall = data.alerts ? data.alerts.fall_detected : false;
+      const sos = data.alerts ? data.alerts.sos_active : false;
+
+      if(fall || sos) {
+        alertCard.classList.add('danger');
+        const alertMsg = sos ? 'EMERGENCY: MANUAL SOS TRIGGERED BY WORKER' : 'CRITICAL: FALL DETECTED BY ACCELEROMETER';
+        alertTxt.innerText = alertMsg;
+        triggerSiren();
+        addLog(`CRITICAL ALERT! ${alertMsg}`);
+      } else {
+        alertCard.classList.remove('danger');
+        alertTxt.innerText = 'SYSTEM NORMAL — ALL METRICS SECURE';
+        addLog('Telemetry Sync OK. All systems normal.');
+      }
+    });
+  </script>
+</body>
+</html>
