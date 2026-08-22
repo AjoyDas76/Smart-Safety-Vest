@@ -68,11 +68,21 @@
     /* Grid Layout */
     .dashboard-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
 
+    /* Tactical Cards with Cyan Hover Glow */
     .card {
       background: var(--card-bg); backdrop-filter: blur(20px);
       border: 1px solid var(--border-color); border-radius: 16px; padding: 20px;
       position: relative; overflow: hidden;
+      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
+
+    /* CYAN GLOW HOVER EFFECT */
+    .card:hover {
+      border-color: var(--cyan-glow) !important;
+      transform: translateY(-3px);
+      box-shadow: 0 0 25px rgba(0, 242, 255, 0.35), inset 0 0 15px rgba(0, 242, 255, 0.1);
+    }
+
     .card-title {
       font-size: 11px; font-weight: 700; color: var(--text-muted);
       text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;
@@ -131,7 +141,7 @@
 <body>
 
   <header>
-    <div class="brand-title">Smart Safety Vest v1.0</div>
+    <div class="brand-title">Smart Safety Vest v1.00</div>
     <div class="nav-controls">
       <button class="btn-action" onclick="toggleAudio()">AUDIO: OFF</button>
       <button class="btn-action" style="border-color: var(--amber-glow); color: var(--amber-glow);" onclick="downloadLogs()">EXPORT REPORT</button>
