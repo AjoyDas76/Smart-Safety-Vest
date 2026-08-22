@@ -812,11 +812,13 @@
       });
     }, 2000);
 
-    function triggerSOS() {
-      playEmergencySound();
-      db.ref('/worker1/alerts').update({ sos_active: true });
-      alert('SOS Signal sent!');
-    }
+let isSosOn = false;
+function triggerSOS() {
+  playEmergencySound();
+  isSosOn = !isSosOn;
+  db.ref('/worker1/alerts').update({ sos_active: isSosOn });
+  alert(isSosOn ? 'SOS Signal sent!' : 'SOS Signal Cleared!');
+}
   </script>
 </body>
 </html>
