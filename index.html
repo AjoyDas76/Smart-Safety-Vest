@@ -237,8 +237,8 @@
     .worker-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; font-size: 11px; width: 100%; }
     .worker-details span { color: var(--text-muted); }
 
-    /* SENSOR METRICS GRID (RESPONSIVE) */
-    .sensor-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; width: 100%; }
+    /* SENSOR METRICS GRID (5 CARDS RESPONSIVE) */
+    .sensor-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; width: 100%; }
     
     .sensor-card-v2 {
       padding: 12px 10px 0px 10px;
@@ -397,7 +397,7 @@
       </div>
     </div>
 
-    <!-- SENSOR METRICS GRID -->
+    <!-- SENSOR METRICS GRID (REMOVED HEART RATE) -->
     <div class="sensor-grid">
       
       <!-- Temperature -->
@@ -464,22 +464,6 @@
         <div class="sparkline-box-v2"><canvas id="gasSpark"></canvas></div>
       </div>
 
-      <!-- Heart Rate -->
-      <div class="sensor-card-v2 glass-panel">
-        <div class="sensor-body-v2">
-          <div class="sensor-icon-box" style="color: var(--red); filter: drop-shadow(0 0 6px rgba(255,51,102,0.6));">
-            <i class="fa-solid fa-heart-pulse"></i>
-          </div>
-          <div class="sensor-info-box">
-            <span class="sensor-title-v2">HEART RATE</span>
-            <div class="sensor-val-v2"><span id="hrVal">--</span> <small>bpm</small></div>
-            <span class="sensor-status-v2" id="hrStatus">Waiting...</span>
-            <span class="sensor-range-v2">Range: 50 - 120 bpm</span>
-          </div>
-        </div>
-        <div class="sparkline-box-v2"><canvas id="hrSpark"></canvas></div>
-      </div>
-
       <!-- Battery -->
       <div class="sensor-card-v2 glass-panel">
         <div class="sensor-body-v2">
@@ -510,7 +494,6 @@
         <div class="device-conn-list">
           <div class="device-item"><div class="device-name"><i class="fa-solid fa-microchip"></i> ESP32</div> <span id="stEsp32" style="color: var(--amber);">Waiting...</span></div>
           <div class="device-item"><div class="device-name"><i class="fa-solid fa-location-dot"></i> GPS</div> <span id="stGps" style="color: var(--amber);">Waiting...</span></div>
-          <div class="device-item"><div class="device-name"><i class="fa-solid fa-heart-pulse"></i> Heart Rate Sensor</div> <span id="stHr" style="color: var(--amber);">Waiting...</span></div>
           <div class="device-item"><div class="device-name"><i class="fa-solid fa-wind"></i> Gas Sensor</div> <span id="stGas" style="color: var(--amber);">Waiting...</span></div>
           <div class="device-item"><div class="device-name"><i class="fa-solid fa-temperature-high"></i> Temperature Sensor</div> <span id="stTemp" style="color: var(--amber);">Waiting...</span></div>
           <div class="device-item"><div class="device-name"><i class="fa-solid fa-wifi"></i> Internet</div> <span id="stNet" style="color: var(--amber);">Waiting...</span></div>
@@ -649,7 +632,6 @@
     createSparkline('humSpark', '#00f2ff', 'rgba(0, 242, 255, 0.35)');
     createSparkline('presSpark', '#a855f7', 'rgba(168, 85, 247, 0.35)');
     createSparkline('gasSpark', '#eab308', 'rgba(234, 179, 8, 0.35)');
-    createSparkline('hrSpark', '#ff3366', 'rgba(255, 51, 102, 0.35)');
 
     function updateSparkline(id, val) {
       const chart = sparklineInstances[id];
@@ -718,7 +700,6 @@
 
         document.getElementById('stEsp32').innerText = 'Connected'; document.getElementById('stEsp32').style.color = 'var(--green)';
         document.getElementById('stGps').innerText = 'Connected'; document.getElementById('stGps').style.color = 'var(--green)';
-        document.getElementById('stHr').innerText = 'Connected'; document.getElementById('stHr').style.color = 'var(--green)';
         document.getElementById('stGas').innerText = 'Connected'; document.getElementById('stGas').style.color = 'var(--green)';
         document.getElementById('stTemp').innerText = 'Connected'; document.getElementById('stTemp').style.color = 'var(--green)';
         document.getElementById('stNet').innerText = 'Connected'; document.getElementById('stNet').style.color = 'var(--green)';
@@ -770,21 +751,6 @@
           document.getElementById('gasStatus').style.color = 'var(--green)';
         }
         updateSparkline('gasSpark', val);
-      }
-
-      // Heart Rate
-      if (data.heart_rate !== undefined) {
-        const val = Number(data.heart_rate);
-        document.getElementById('hrVal').innerText = val.toFixed(0);
-        if (val > 120 || val < 50) {
-          document.getElementById('hrStatus').innerText = 'Abnormal';
-          document.getElementById('hrStatus').style.color = 'var(--red)';
-          isHazard = true;
-        } else {
-          document.getElementById('hrStatus').innerText = 'Normal';
-          document.getElementById('hrStatus').style.color = 'var(--green)';
-        }
-        updateSparkline('hrSpark', val);
       }
 
       // Humidity
