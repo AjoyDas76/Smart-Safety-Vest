@@ -174,9 +174,33 @@
       align-items: center; justify-content: center; cursor: pointer; padding: 12px;
     }
     .sos-btn {
-      width: 48px; height: 48px; border-radius: 50%; background: var(--red);
-      color: #fff; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 14px;
-      display: grid; place-items: center; box-shadow: 0 0 15px var(--red); border: 2px solid #fff;
+      width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,0.15);
+      color: #fff; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 13px;
+      display: grid; place-items: center; box-shadow: 0 0 8px rgba(255,0,85,0.3); border: 2px solid rgba(255,255,255,0.5);
+      transition: background 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+
+    .sos-btn.active {
+      background: var(--red);
+      border-color: #fff;
+      animation: sosPulse 1.1s ease-in-out infinite;
+    }
+
+    .sos-card.active {
+      background: radial-gradient(circle at center, rgba(255,0,85,0.45) 0%, rgba(13,25,44,0.6) 100%);
+      border-color: var(--red);
+      animation: sosCardGlow 1.1s ease-in-out infinite;
+    }
+
+    @keyframes sosPulse {
+      0%   { box-shadow: 0 0 12px var(--red), 0 0 0 0 rgba(255,51,102,0.55); }
+      70%  { box-shadow: 0 0 22px var(--red), 0 0 0 14px rgba(255,51,102,0); }
+      100% { box-shadow: 0 0 12px var(--red), 0 0 0 0 rgba(255,51,102,0); }
+    }
+
+    @keyframes sosCardGlow {
+      0%, 100% { box-shadow: var(--card-glow); }
+      50% { box-shadow: 0 0 26px 4px rgba(255,51,102,0.45); }
     }
 
     .worker-info-card { flex: 2; min-width: 250px; display: flex; align-items: center; gap: 14px; }
@@ -326,8 +350,8 @@
         </div>
       </div>
 
-      <div class="card glass-panel sos-card" onclick="triggerSOS()">
-        <div class="sos-btn">SOS</div>
+      <div class="card glass-panel sos-card" id="sosCard" onclick="toggleSOS()">
+        <div class="sos-btn" id="sosBtn">OFF</div>
         <span style="font-size: 8px; color: #ff80a8; margin-top: 4px; font-weight: 700; font-family: Orbitron;">EMERGENCY SOS</span>
       </div>
 
@@ -708,13 +732,14 @@
       }
 
       if (data.status && data.status.motion_state) {
-        const state = data.status.motion_state;
+        const state = String(data.status.motion_state).trim().toUpperCase();
         document.getElementById('motionStateVal').innerText = state;
         const iconEl = document.getElementById('motionIcon');
-        if (state === "Walking") iconEl.className = "fa-solid fa-person-walking";
-        else if (state === "Running") iconEl.className = "fa-solid fa-person-running";
-        else if (state === "Lying Down") iconEl.className = "fa-solid fa-bed";
-        else iconEl.className = "fa-solid fa-person";
+        if (state === "WALKING") iconEl.className = "fa-solid fa-person-walking";
+        else if (state === "RUNNING") iconEl.className = "fa-solid fa-person-running";
+        else if (state === "LYING") iconEl.className = "fa-solid fa-bed";
+        else if (state === "FALL") { iconEl.className = "fa-solid fa-triangle-exclamation"; isHazard = true; }
+        else iconEl.className = "fa-solid fa-person"; // STANDING
       }
 
       if (data.alerts) {
@@ -812,11 +837,37 @@
       });
     }, 2000);
 
-    function triggerSOS() {
-      playEmergencySound();
-      db.ref('/worker1/alerts').update({ sos_active: true });
-      alert('SOS Signal sent!');
+    // ===================== Web SOS Toggle (rings the vest buzzer) =====================
+    // Uses a dedicated '/worker1/commands/web_sos' flag so it never collides with the
+    // vest's own physical SOS-button reading at '/worker1/alerts/sos_active'.
+    let webSosActive = false;
+
+    function setSosUI(active) {
+      const sosBtn = document.getElementById('sosBtn');
+      const sosCard = document.getElementById('sosCard');
+      webSosActive = active;
+      if (active) {
+        sosBtn.innerText = 'ON';
+        sosBtn.classList.add('active');
+        sosCard.classList.add('active');
+      } else {
+        sosBtn.innerText = 'OFF';
+        sosBtn.classList.remove('active');
+        sosCard.classList.remove('active');
+      }
     }
+
+    function toggleSOS() {
+      const next = !webSosActive;
+      setSosUI(next);
+      db.ref('/worker1/commands').update({ web_sos: next });
+      if (next) playEmergencySound();
+    }
+
+    // Sync button state on load / refresh in case SOS was left ON in a previous session
+    db.ref('/worker1/commands/web_sos').once('value', (snap) => {
+      setSosUI(snap.val() === true);
+    });
   </script>
 </body>
 </html>
