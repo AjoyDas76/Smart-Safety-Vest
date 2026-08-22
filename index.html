@@ -2,437 +2,427 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Smart Safety Vest — Tactical Command Center v4.1</title>
-
-  <!-- Google Fonts & Leaflet -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMART SAFETY VEST // TACTICAL COMMAND CENTER v4.1</title>
+  
+  <!-- Fonts & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  
-  <!-- Firebase & Leaflet SDKs -->
+
+  <!-- External Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
     :root {
-      --bg-dark: #020617;
-      --card-bg: rgba(15, 23, 42, 0.85);
-      --border-color: rgba(56, 189, 248, 0.2);
+      --bg-gradient: radial-gradient(circle at 50% 0%, #0c192e 0%, #030712 100%);
+      --glass-card: rgba(15, 23, 42, 0.75);
+      --glass-border: rgba(56, 189, 248, 0.18);
       --cyan-glow: #00f2ff;
+      --cyan-glow-dim: rgba(0, 242, 255, 0.15);
       --green-glow: #10b981;
       --red-glow: #ff0055;
       --amber-glow: #f59e0b;
       --text-main: #f8fafc;
-      --text-muted: #64748b;
-      --map-filter: invert(100%) hue-rotate(190deg) brightness(90%) contrast(110%);
-    }
-
-    body.light-theme {
-      --bg-dark: #f1f5f9;
-      --card-bg: rgba(255, 255, 255, 0.9);
-      --border-color: rgba(14, 165, 233, 0.3);
-      --cyan-glow: #0284c7;
-      --green-glow: #059669;
-      --red-glow: #dc2626;
-      --amber-glow: #d97706;
-      --text-main: #0f172a;
-      --text-muted: #475569;
-      --map-filter: none;
+      --text-muted: #94a3b8;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Space Grotesk', sans-serif;
-      background: var(--bg-dark);
+      background: var(--bg-gradient);
       color: var(--text-main);
-      padding: 12px;
-      min-height: 100vh;
-      transition: background 0.3s ease, color 0.3s ease;
-      background-image: 
-        radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.05) 0%, transparent 70%),
-        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 100% 100%, 30px 30px, 30px 30px;
+      display: flex; height: 100vh; overflow: hidden;
     }
 
-    /* Top Command Nav Responsive */
+    /* Sidebar */
+    aside {
+      width: 240px; background: rgba(8, 15, 30, 0.85);
+      border-right: 1px solid var(--glass-border);
+      display: flex; flex-direction: column; padding: 20px 12px; backdrop-filter: blur(20px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 30px; padding: 0 8px; }
+    .brand-logo { width: 36px; height: 36px; background: var(--cyan-glow); border-radius: 8px; display: grid; place-items: center; color: #000; font-size: 18px; box-shadow: 0 0 15px var(--cyan-glow); }
+    .brand-title { font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 13px; line-height: 1.2; letter-spacing: 1px; }
+    .brand-title span { font-size: 9px; color: var(--text-muted); display: block; font-family: 'Space Grotesk', sans-serif; }
+
+    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .nav-item a {
+      display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+      color: var(--text-muted); text-decoration: none; border-radius: 10px; font-size: 13px; font-weight: 500;
+      transition: all 0.3s;
+    }
+    .nav-item.active a, .nav-item a:hover {
+      background: var(--cyan-glow-dim); color: #fff; border: 1px solid var(--glass-border);
+      box-shadow: 0 0 15px rgba(0,242,255,0.1);
+    }
+
+    /* Main Content */
+    main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; padding: 16px 20px; gap: 16px; }
+
+    /* Top Bar */
     header {
-      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
-      gap: 12px; padding: 14px 18px; background: var(--card-bg); backdrop-filter: blur(20px);
-      border: 1px solid var(--border-color); border-radius: 16px; margin-bottom: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--glass-card); border: 1px solid var(--glass-border);
+      border-radius: 14px; padding: 12px 20px; backdrop-filter: blur(20px);
     }
-    .brand-title {
-      font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 800;
-      letter-spacing: 1px;
-      background: linear-gradient(90deg, var(--text-main), var(--cyan-glow));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .nav-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; width: auto; }
-    
-    .btn-action {
-      background: rgba(255,255,255,0.05); border: 1px solid var(--border-color);
-      color: var(--text-main); padding: 6px 12px; border-radius: 8px; font-weight: 600;
-      cursor: pointer; transition: all 0.3s; font-size: 11px; letter-spacing: 0.5px;
-    }
-    .btn-action:hover { background: var(--cyan-glow); color: #000; box-shadow: 0 0 15px var(--cyan-glow); }
+    .header-left { display: flex; align-items: center; gap: 16px; }
+    .cmd-title { font-family: 'Orbitron', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: 1.5px; }
+    .status-pill { display: flex; align-items: center; gap: 8px; font-size: 11px; font-family: 'Orbitron', sans-serif; color: var(--green-glow); background: rgba(16, 185, 129, 0.1); padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.3); }
 
-    /* Heartbeat Status Indicator */
-    .status-badge {
-      display: flex; align-items: center; gap: 6px; font-family: 'Orbitron', sans-serif;
-      font-size: 10px; padding: 6px 10px; background: rgba(0,0,0,0.2); border-radius: 20px;
-      border: 1px solid var(--border-color);
-    }
-    .pulse-dot {
-      width: 8px; height: 8px; border-radius: 50%; background: var(--green-glow);
-      box-shadow: 0 0 10px var(--green-glow); animation: pulse 1.5s infinite;
-    }
+    .header-right { display: flex; align-items: center; gap: 20px; font-size: 12px; }
+    .clock-box { text-align: right; font-family: 'Orbitron', sans-serif; }
+    .clock-box span { display: block; font-size: 10px; color: var(--text-muted); font-family: 'Space Grotesk', sans-serif; }
 
-    /* Grid Layout */
-    .dashboard-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; }
-
-    /* Tactical Cards */
-    .card {
-      background: var(--card-bg); backdrop-filter: blur(20px);
-      border: 1px solid var(--border-color); border-radius: 16px; padding: 16px;
-      position: relative; overflow: hidden;
-      transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    .card:hover {
-      border-color: var(--cyan-glow) !important;
-      transform: translateY(-2px);
-      box-shadow: 0 0 20px rgba(0, 242, 255, 0.25);
-    }
-
-    .card-title {
-      font-size: 10px; font-weight: 700; color: var(--text-muted);
-      text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px;
-    }
-    .value-display {
-      font-family: 'Orbitron', sans-serif; font-size: 26px; font-weight: 800; color: var(--text-main);
-    }
-    .unit { font-size: 12px; color: var(--cyan-glow); margin-left: 2px; }
-
-    /* Custom Progress Gauges */
-    .gauge-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-top: 10px; overflow: hidden; }
-    .gauge-fill { height: 100%; background: var(--cyan-glow); width: 0%; transition: width 0.5s ease, background 0.3s ease; box-shadow: 0 0 10px var(--cyan-glow); }
-
-    .gauge-warning { background: var(--amber-glow) !important; box-shadow: 0 0 10px var(--amber-glow) !important; }
-    .gauge-danger { background: var(--red-glow) !important; box-shadow: 0 0 10px var(--red-glow) !important; }
-
-    /* Motion Tag */
-    .motion-tag {
-      font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 800;
-      padding: 6px 12px; border-radius: 6px; background: rgba(0, 242, 255, 0.1);
-      color: var(--cyan-glow); border: 1px solid var(--cyan-glow); display: inline-block;
-    }
-
-    /* Threat Alert Card */
-    .alert-card.danger {
-      background: rgba(255, 0, 85, 0.15) !important; border-color: var(--red-glow) !important;
-      box-shadow: 0 0 30px rgba(255, 0, 85, 0.3) !important; animation: blink 0.8s infinite alternate;
-    }
-    .alert-title { font-family: 'Orbitron', sans-serif; font-size: 15px; font-weight: 800; color: var(--green-glow); line-height: 1.3; }
-    .alert-card.danger .alert-title { color: var(--red-glow) !important; }
-
-    /* Live Telemetry Terminal & Notes Engine */
-    .log-container {
-      height: 110px; overflow-y: auto; font-family: monospace; font-size: 10px;
-      color: var(--cyan-glow); background: rgba(0,0,0,0.4); padding: 8px;
-      border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-top: 8px;
-    }
-    .log-item { margin-bottom: 4px; opacity: 0.8; }
-
-    .notes-input {
-      width: 100%; height: 80px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color);
-      border-radius: 8px; color: var(--text-main); padding: 8px; font-family: inherit; font-size: 11px;
-      resize: none; outline: none; margin-top: 8px;
-    }
-    .notes-input:focus { border-color: var(--cyan-glow); }
-
-    /* GIS Tactical Map */
-    #map {
-      height: 320px; width: 100%; border-radius: 12px;
-      filter: var(--map-filter); transition: filter 0.3s ease;
-    }
-
-    /* Grid Spans (Desktop Default) */
+    /* Layout Grid */
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
     .col-3 { grid-column: span 3; }
     .col-4 { grid-column: span 4; }
+    .col-5 { grid-column: span 5; }
     .col-6 { grid-column: span 6; }
+    .col-7 { grid-column: span 7; }
     .col-8 { grid-column: span 8; }
     .col-12 { grid-column: span 12; }
 
-    /* ========================================================= */
-    /* MOBILE & TABLET RESPONSIVE FIXES                          */
-    /* ========================================================= */
-
-    @media (max-width: 900px) {
-      .col-3, .col-4 { grid-column: span 6; }
-      .col-6, .col-8 { grid-column: span 12; }
+    /* Glass Cards */
+    .card {
+      background: var(--glass-card); border: 1px solid var(--glass-border);
+      border-radius: 14px; padding: 16px; backdrop-filter: blur(20px);
+      position: relative; transition: all 0.3s;
     }
+    .card:hover { border-color: var(--cyan-glow); box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); }
 
-    @media (max-width: 600px) {
-      body { padding: 8px; }
-      
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .nav-controls {
-        width: 100%;
-        justify-content: space-between;
-      }
+    /* Top Row Highlights */
+    .system-status { display: flex; align-items: center; gap: 16px; }
+    .status-icon { width: 50px; height: 50px; border-radius: 50%; background: rgba(16,185,129,0.1); border: 2px solid var(--green-glow); display: grid; place-items: center; color: var(--green-glow); font-size: 24px; box-shadow: 0 0 15px var(--green-glow); }
+    .status-text h2 { font-family: 'Orbitron', sans-serif; font-size: 18px; color: var(--green-glow); }
+    .status-text p { font-size: 11px; color: var(--text-muted); }
 
-      /* Force 2 Columns on Small Phones for Telemetry Cards */
-      .col-3 { grid-column: span 6; }
-      .col-4, .col-6, .col-8, .col-12 { grid-column: span 12; }
-
-      .value-display { font-size: 22px; }
-      .alert-title { font-size: 13px; }
-      #map { height: 260px; }
+    .sos-card {
+      background: radial-gradient(circle at center, rgba(255,0,85,0.3) 0%, rgba(15,23,42,0.8) 100%);
+      border-color: var(--red-glow); text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center;
+      box-shadow: 0 0 25px rgba(255,0,85,0.2); cursor: pointer;
     }
-    
-    @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
-    @keyframes blink { from { opacity: 0.7; } to { opacity: 1; } }
+    .sos-btn { width: 60px; height: 60px; border-radius: 50%; background: var(--red-glow); color: #fff; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 18px; display: grid; place-items: center; box-shadow: 0 0 20px var(--red-glow); border: 3px solid #fff; }
+    .sos-card p { font-size: 10px; color: #ff80a8; margin-top: 6px; font-weight: 600; text-transform: uppercase; }
+
+    .worker-info { display: flex; align-items: center; gap: 14px; }
+    .avatar { width: 44px; height: 44px; border-radius: 50%; background: rgba(0,242,255,0.1); border: 1px solid var(--cyan-glow); display: grid; place-items: center; color: var(--cyan-glow); font-size: 20px; }
+    .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 16px; font-size: 11px; flex: 1; }
+    .info-grid div span { color: var(--text-muted); }
+
+    /* Sensor Metric Cards */
+    .sensor-card { display: flex; flex-direction: column; justify-content: space-between; }
+    .sensor-header { display: flex; justify-content: space-between; align-items: center; }
+    .sensor-title { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+    .sensor-icon { color: var(--cyan-glow); font-size: 16px; }
+    .sensor-val { font-family: 'Orbitron', sans-serif; font-size: 22px; font-weight: 800; margin: 8px 0; }
+    .sensor-sub { font-size: 10px; color: var(--green-glow); display: flex; justify-content: space-between; }
+    .sensor-sparkline { height: 35px; width: 100%; margin-top: 6px; }
+
+    /* Section Titles */
+    .card-title { font-family: 'Orbitron', sans-serif; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+
+    /* Connection Panel */
+    .device-list { display: flex; flex-direction: column; gap: 8px; font-size: 11px; }
+    .device-item { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .device-status { color: var(--green-glow); font-family: 'Orbitron', sans-serif; font-size: 9px; }
+
+    /* Line Chart Panel */
+    .chart-container { height: 210px; position: relative; }
+    .filter-tabs { display: flex; gap: 6px; }
+    .filter-btn { background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); color: var(--text-muted); padding: 2px 8px; border-radius: 4px; font-size: 10px; cursor: pointer; }
+    .filter-btn.active { background: var(--cyan-glow); color: #000; font-weight: 700; }
+
+    /* Map */
+    #map { height: 210px; width: 100%; border-radius: 10px; filter: invert(100%) hue-rotate(190deg) brightness(90%) contrast(110%); }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: 11px; text-align: left; }
+    th { color: var(--text-muted); font-weight: 600; padding: 8px; border-bottom: 1px solid var(--glass-border); }
+    td { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .badge { padding: 2px 8px; border-radius: 12px; font-size: 9px; font-weight: 700; font-family: 'Orbitron', sans-serif; display: inline-block; }
+    .badge-safe { background: rgba(16,185,129,0.15); color: var(--green-glow); border: 1px solid var(--green-glow); }
+    .badge-danger { background: rgba(255,0,85,0.15); color: var(--red-glow); border: 1px solid var(--red-glow); }
+    .badge-warn { background: rgba(245,158,11,0.15); color: var(--amber-glow); border: 1px solid var(--amber-glow); }
+
+    /* Alerts Engine */
+    .active-alert-box { background: rgba(255,0,85,0.1); border: 1px solid var(--red-glow); border-radius: 10px; padding: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .timer-ring { width: 40px; height: 40px; border-radius: 50%; border: 3px solid var(--red-glow); display: grid; place-items: center; font-family: 'Orbitron', sans-serif; font-weight: 800; font-size: 12px; color: var(--red-glow); }
+    .action-btns { display: flex; gap: 8px; margin-top: 8px; }
+    .btn { padding: 6px 12px; border-radius: 6px; border: none; font-size: 10px; font-weight: 700; cursor: pointer; }
+    .btn-ack { background: var(--red-glow); color: #fff; }
+    .btn-false { background: rgba(255,255,255,0.1); color: var(--text-main); }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+      aside { width: 70px; }
+      aside .brand-title, aside .nav-item span { display: none; }
+      .col-3, .col-4, .col-5, .col-6, .col-7, .col-8 { grid-column: span 12; }
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="brand-title">VEST COMMAND // TACTICAL v4.1</div>
-    <div class="nav-controls">
-      <div class="status-badge">
-        <div class="pulse-dot" id="pingDot"></div>
-        <span id="pingText">SYNCING...</span>
+  <!-- Sidebar Nav -->
+  <aside>
+    <div class="brand">
+      <div class="brand-logo"><i class="fa-solid fa-vest-patches"></i></div>
+      <div class="brand-title">SMART SAFETY VEST<span>REAL-TIME MONITORING</span></div>
+    </div>
+    <ul class="nav-list">
+      <li class="nav-item active"><a href="#"><i class="fa-solid fa-chart-line"></i><span>Dashboard</span></a></li>
+      <li class="nav-item"><a href="#"><i class="fa-solid fa-tower-broadcast"></i><span>Live Monitoring</span></a></li>
+      <li class="nav-item"><a href="#"><i class="fa-solid fa-users"></i><span>Workers</span></a></li>
+      <li class="nav-item"><a href="#"><i class="fa-solid fa-triangle-exclamation"></i><span>Alerts</span></a></li>
+      <li class="nav-item"><a href="#"><i class="fa-solid fa-map-location-dot"></i><span>Map Tracking</span></a></li>
+      <li class="nav-item"><a href="#"><i class="fa-solid fa-clock-rotate-left"></i><span>History / Logs</span></a></li>
+      <li class="nav-item"><a href="#"><i class="fa-solid fa-gear"></i><span>Settings</span></a></li>
+    </ul>
+  </aside>
+
+  <!-- Main View -->
+  <main>
+    <!-- Top Header -->
+    <header>
+      <div class="header-left">
+        <div class="cmd-title">VEST COMMAND // TACTICAL v4.1</div>
+        <div class="status-pill"><i class="fa-solid fa-circle" style="font-size: 8px;"></i> CONNECTED</div>
       </div>
-      <button class="btn-action" onclick="toggleTheme()">THEME</button>
-      <button class="btn-action" onclick="toggleAudio()">AUDIO: OFF</button>
-      <button class="btn-action" style="border-color: var(--amber-glow); color: var(--amber-glow);" onclick="downloadLogs()">EXPORT</button>
-    </div>
-  </header>
+      <div class="header-right">
+        <div class="clock-box" id="liveClock">00:00:00 AM<span>22 Aug 2026</span></div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-user-shield" style="color: var(--cyan-glow);"></i> Supervisor Admin
+        </div>
+      </div>
+    </header>
 
-  <div class="dashboard-grid">
-    
-    <!-- Environment Telemetry (Mobile 2 per row) -->
-    <div class="card col-3">
-      <div class="card-title">Temperature</div>
-      <div class="value-display"><span id="temp">0.0</span><span class="unit">°C</span></div>
-      <div class="gauge-bar"><div class="gauge-fill" id="tempBar"></div></div>
-    </div>
+    <!-- Top Grid Section -->
+    <div class="grid">
+      <div class="card col-5 system-status">
+        <div class="status-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="status-text">
+          <h2>SYSTEM NORMAL</h2>
+          <p style="font-weight: 700; color: #fff;">ALL METRICS SECURE</p>
+          <p>Everything is operating within safe parameters.</p>
+        </div>
+      </div>
 
-    <div class="card col-3">
-      <div class="card-title">Humidity</div>
-      <div class="value-display"><span id="hum">0.0</span><span class="unit">%</span></div>
-      <div class="gauge-bar"><div class="gauge-fill" id="humBar"></div></div>
-    </div>
+      <div class="card col-2 sos-card">
+        <div class="sos-btn">SOS</div>
+        <p>EMERGENCY<br>PRESS & HOLD</p>
+      </div>
 
-    <div class="card col-3">
-      <div class="card-title">Pressure</div>
-      <div class="value-display"><span id="pres">0.0</span><span class="unit">hPa</span></div>
-      <div class="gauge-bar"><div class="gauge-fill" id="presBar"></div></div>
-    </div>
-
-    <div class="card col-3">
-      <div class="card-title">Power Module</div>
-      <div class="value-display"><span id="batt">0.00</span><span class="unit">V</span></div>
-      <div class="gauge-bar"><div class="gauge-fill" id="battBar" style="background: var(--green-glow);"></div></div>
-    </div>
-
-    <!-- Kinematics & Emergency Engine -->
-    <div class="card col-4">
-      <div class="card-title">Worker Kinematics State</div>
-      <div style="margin-top: 8px;"><span class="motion-tag" id="motion">OFFLINE</span></div>
-    </div>
-
-    <div class="card col-8 alert-card" id="alertCard">
-      <div class="card-title">Threat Assessment Engine</div>
-      <div class="alert-title" id="alert">SYSTEM NORMAL — ALL METRICS SECURE</div>
-    </div>
-
-    <!-- Live Telemetry Stream Logs -->
-    <div class="card col-6">
-      <div class="card-title">Realtime System Stream Log</div>
-      <div class="log-container" id="terminalLog">
-        <div class="log-item">> System Initialized... Waiting for gateway packet.</div>
+      <div class="card col-5 worker-info">
+        <div class="avatar"><i class="fa-solid fa-user"></i></div>
+        <div class="info-grid">
+          <div><span>Worker ID:</span> SV-001</div>
+          <div><span>Status:</span> <b style="color: var(--green-glow);">CONNECTED</b></div>
+          <div><span>Name:</span> Worker 01</div>
+          <div><span>Shift:</span> 08:00 - 16:00</div>
+          <div><span>Vest ID:</span> VEST-001</div>
+          <div><span>Last Sync:</span> Just now</div>
+        </div>
       </div>
     </div>
 
-    <!-- Operator Notes Engine -->
-    <div class="card col-6">
-      <div class="card-title">Operator Notes</div>
-      <textarea class="notes-input" id="operatorNotes" placeholder="Type incident notes here..." oninput="saveNotes()"></textarea>
+    <!-- Sensor Sparkline Grid -->
+    <div class="grid">
+      <div class="card col-2 sensor-card">
+        <div class="sensor-header"><span class="sensor-title">Temperature</span><i class="fa-solid fa-temperature-high sensor-icon"></i></div>
+        <div class="sensor-val"><span id="tempVal">32.4</span> <small style="font-size: 12px; color: var(--cyan-glow);">°C</small></div>
+        <div class="sensor-sub"><span>Normal</span><span>Range: 15-45°C</span></div>
+        <canvas id="tempSpark" class="sensor-sparkline"></canvas>
+      </div>
+
+      <div class="card col-2 sensor-card">
+        <div class="sensor-header"><span class="sensor-title">Humidity</span><i class="fa-solid fa-droplet sensor-icon"></i></div>
+        <div class="sensor-val"><span id="humVal">60.2</span> <small style="font-size: 12px; color: var(--cyan-glow);">%</small></div>
+        <div class="sensor-sub"><span>Normal</span><span>Range: 20-90%</span></div>
+        <canvas id="humSpark" class="sensor-sparkline"></canvas>
+      </div>
+
+      <div class="card col-2 sensor-card">
+        <div class="sensor-header"><span class="sensor-title">Pressure</span><i class="fa-solid fa-gauge-high sensor-icon"></i></div>
+        <div class="sensor-val"><span id="presVal">1012</span> <small style="font-size: 12px; color: var(--cyan-glow);">hPa</small></div>
+        <div class="sensor-sub"><span>Normal</span><span>950-1050 hPa</span></div>
+        <canvas id="presSpark" class="sensor-sparkline"></canvas>
+      </div>
+
+      <div class="card col-2 sensor-card">
+        <div class="sensor-header"><span class="sensor-title">Gas / Air Quality</span><i class="fa-solid fa-wind sensor-icon"></i></div>
+        <div class="sensor-val"><span id="gasVal">12</span> <small style="font-size: 12px; color: var(--cyan-glow);">ppm</small></div>
+        <div class="sensor-sub"><span>Good</span><span>Range: 0-50 ppm</span></div>
+        <canvas id="gasSpark" class="sensor-sparkline"></canvas>
+      </div>
+
+      <div class="card col-2 sensor-card">
+        <div class="sensor-header"><span class="sensor-title">Heart Rate</span><i class="fa-solid fa-heart-pulse sensor-icon" style="color: var(--red-glow);"></i></div>
+        <div class="sensor-val"><span id="hrVal">78</span> <small style="font-size: 12px; color: var(--cyan-glow);">bpm</small></div>
+        <div class="sensor-sub"><span>Normal</span><span>Range: 50-120 bpm</span></div>
+        <canvas id="hrSpark" class="sensor-sparkline"></canvas>
+      </div>
+
+      <div class="card col-2 sensor-card">
+        <div class="sensor-header"><span class="sensor-title">Battery</span><i class="fa-solid fa-battery-three-quarters sensor-icon" style="color: var(--green-glow);"></i></div>
+        <div class="sensor-val"><span id="battVal">78</span> <small style="font-size: 12px; color: var(--cyan-glow);">%</small></div>
+        <div class="sensor-sub"><span>7.8 V</span><span>Est. 4h 32m</span></div>
+        <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 18px; overflow: hidden;">
+          <div style="width: 78%; height: 100%; background: var(--green-glow); box-shadow: 0 0 10px var(--green-glow);"></div>
+        </div>
+      </div>
     </div>
 
-    <!-- Live Tactical Map -->
-    <div class="card col-12">
-      <div class="card-title">Geographic Coordinates & Trail (NEO-M8N)</div>
-      <div id="map"></div>
+    <!-- Live Chart, Device Health & Map Row -->
+    <div class="grid">
+      <div class="card col-3">
+        <div class="card-title">Device Connection</div>
+        <div class="device-list">
+          <div class="device-item"><span>ESP32 Main Control</span><span class="device-status">CONNECTED</span></div>
+          <div class="device-item"><span>GPS Module (NEO-M8N)</span><span class="device-status">CONNECTED</span></div>
+          <div class="device-item"><span>Heart Rate Sensor</span><span class="device-status">CONNECTED</span></div>
+          <div class="device-item"><span>Gas Sensor (MQ Series)</span><span class="device-status">CONNECTED</span></div>
+          <div class="device-item"><span>Temp/Humidity (DHT)</span><span class="device-status">CONNECTED</span></div>
+          <div class="device-item"><span>Internet / Cloud</span><span class="device-status">CONNECTED</span></div>
+        </div>
+        <div style="margin-top: 12px; font-size: 10px; color: var(--text-muted); display: flex; justify-content: space-between;">
+          <span>Signal Strength</span><span style="color: var(--green-glow); font-family: 'Orbitron', sans-serif;">-62 dBm</span>
+        </div>
+      </div>
+
+      <div class="card col-5">
+        <div class="card-title">
+          Live Sensor Data (Last 10 Min)
+          <div class="filter-tabs">
+            <button class="filter-btn active">Temp</button>
+            <button class="filter-btn">Humidity</button>
+            <button class="filter-btn">Gas</button>
+          </div>
+        </div>
+        <div class="chart-container"><canvas id="mainChart"></canvas></div>
+      </div>
+
+      <div class="card col-4">
+        <div class="card-title">Live Location Tracking</div>
+        <div id="map"></div>
+      </div>
     </div>
 
-  </div>
+    <!-- Bottom Tables Row -->
+    <div class="grid">
+      <div class="card col-5">
+        <div class="card-title">Event / Alert History</div>
+        <table>
+          <thead>
+            <tr><th>TIME</th><th>EVENT</th><th>STATUS</th><th>VALUE</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>11:21:18 AM</td><td>Temperature Normal</td><td><span class="badge badge-safe">SAFE</span></td><td>32.4 °C</td></tr>
+            <tr><td>11:20:45 AM</td><td>Humidity Normal</td><td><span class="badge badge-safe">SAFE</span></td><td>60.2 %</td></tr>
+            <tr><td>11:20:12 AM</td><td>Gas Level Normal</td><td><span class="badge badge-safe">SAFE</span></td><td>12 ppm</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card col-3">
+        <div class="card-title">Active Alerts <span class="badge badge-danger">1</span></div>
+        <div class="active-alert-box">
+          <div>
+            <b style="color: var(--red-glow); font-size: 11px;">POSSIBLE FALL DETECTED</b>
+            <div style="font-size: 10px; color: var(--text-muted);">Worker ID: SV-001 | 11:21:18 AM</div>
+            <div class="action-btns">
+              <button class="btn btn-ack">Acknowledge</button>
+              <button class="btn btn-false">False Alarm</button>
+            </div>
+          </div>
+          <div class="timer-ring">08</div>
+        </div>
+      </div>
+
+      <div class="card col-4">
+        <div class="card-title">All Workers Overview</div>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>NAME</th><th>STATUS</th><th>LOCATION</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>SV-001</td><td>Worker 01</td><td><span class="badge badge-safe">SAFE</span></td><td><i class="fa-solid fa-location-dot" style="color: var(--cyan-glow);"></i></td></tr>
+            <tr><td>SV-002</td><td>Worker 02</td><td><span class="badge badge-safe">SAFE</span></td><td><i class="fa-solid fa-location-dot" style="color: var(--cyan-glow);"></i></td></tr>
+            <tr><td>SV-003</td><td>Worker 03</td><td><span class="badge badge-warn">HIGH TEMP</span></td><td><i class="fa-solid fa-location-dot" style="color: var(--amber-glow);"></i></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
 
   <script>
-    // 1. Firebase Credentials Setup
-    const firebaseConfig = {
-      apiKey: "AIzaSyDJl0vyF4mLdMVfIll9bdDXgA9GB0jc7RY",
-      databaseURL: "https://worker-safety-vest-92b97-default-rtdb.firebaseio.com//"
-    };
+    // Live Clock
+    setInterval(() => {
+      const now = new Date();
+      document.getElementById('liveClock').innerHTML = `${now.toLocaleTimeString()}<span>${now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>`;
+    }, 1000);
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // Theme Switcher Engine
-    function toggleTheme() {
-      document.body.classList.toggle('light-theme');
-    }
-
-    // Operator Notes Local Persistence
-    document.getElementById('operatorNotes').value = localStorage.getItem('vest_operator_notes') || '';
-    function saveNotes() {
-      localStorage.setItem('vest_operator_notes', document.getElementById('operatorNotes').value);
-    }
-
-    // Web Audio Siren Setup
-    let audioEnabled = false;
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    function toggleAudio() {
-      audioEnabled = !audioEnabled;
-      event.target.innerText = audioEnabled ? "AUDIO: ACTIVE 🔊" : "AUDIO: OFF 🔇";
-      if(audioEnabled && audioCtx.state === 'suspended') audioCtx.resume();
-    }
-
-    function triggerSiren() {
-      if(!audioEnabled) return;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.5);
-      gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.5);
-    }
-
-    // 2. Map Canvas & Route Trail Setup
-    const map = L.map('map', { zoomControl: false }).setView([22.3569, 91.7832], 15);
+    // Leaflet Map Engine
+    const map = L.map('map', { zoomControl: false }).setView([22.3569, 91.7832], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    const marker = L.marker([22.3569, 91.7832]).addTo(map).bindPopup('Worker 01 (SAFE)').openPopup();
 
-    const customIcon = L.divIcon({
-      className: 'radar-pin',
-      html: `<div style="width: 18px; height: 18px; background: #00f2ff; border: 3px solid #020617; border-radius: 50%; box-shadow: 0 0 20px #00f2ff;"></div>`,
-      iconSize: [18, 18]
+    // Chart.js Sparklines Setup Helper
+    function buildSparkline(id, color, data) {
+      new Chart(document.getElementById(id), {
+        type: 'line',
+        data: { labels: data.map(()=>''), datasets: [{ data: data, borderColor: color, borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4 }] },
+        options: { plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } }, responsive: true, maintainAspectRatio: false }
+      });
+    }
+
+    buildSparkline('tempSpark', '#00f2ff', [30, 31, 32, 31, 32.4]);
+    buildSparkline('humSpark', '#00f2ff', [58, 60, 59, 61, 60.2]);
+    buildSparkline('presSpark', '#00f2ff', [1010, 1011, 1012, 1012, 1012]);
+    buildSparkline('gasSpark', '#10b981', [10, 11, 14, 12, 12]);
+    buildSparkline('hrSpark', '#ff0055', [72, 75, 80, 76, 78]);
+
+    // Main Trend Line Chart
+    const ctxMain = document.getElementById('mainChart').getContext('2d');
+    new Chart(ctxMain, {
+      type: 'line',
+      data: {
+        labels: ['11:12', '11:14', '11:16', '11:18', '11:20', '11:21'],
+        datasets: [{
+          label: 'Temperature (°C)',
+          data: [31, 33, 30, 35, 32, 32.4],
+          borderColor: '#ff0055',
+          backgroundColor: 'rgba(255, 0, 85, 0.1)',
+          fill: true, tension: 0.3, pointRadius: 4, pointBackgroundColor: '#ff0055'
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 9 } } },
+          y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8', font: { size: 9 } } }
+        }
+      }
     });
 
-    const marker = L.marker([22.3569, 91.7832], { icon: customIcon }).addTo(map);
-    const routePolyline = L.polyline([], { color: '#00f2ff', weight: 4, opacity: 0.7, dashArray: '8, 8' }).addTo(map);
+    // Firebase Credentials Integration Ready
+    const firebaseConfig = { apiKey: "AIzaSyDJl0vyF4mLdMVfIll9bdDXgA9GB0jc7RY", databaseURL: "https://worker-safety-vest-92b97-default-rtdb.firebaseio.com//" };
+    if (firebase.apps.length === 0) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    // Terminal Logger
-    let logHistory = [];
-    function addLog(msg) {
-      const time = new Date().toLocaleTimeString();
-      const logBox = document.getElementById('terminalLog');
-      const logEntry = `[${time}] ${msg}`;
-      logHistory.push(logEntry);
-      
-      const div = document.createElement('div');
-      div.className = 'log-item';
-      div.innerText = `> ${logEntry}`;
-      logBox.appendChild(div);
-      logBox.scrollTop = logBox.scrollHeight;
-    }
-
-    function downloadLogs() {
-      const notes = document.getElementById('operatorNotes').value;
-      const exportContent = `=== SMART SAFETY VEST TELEMETRY REPORT ===\nExported: ${new Date().toLocaleString()}\n\nOPERATOR NOTES:\n${notes || 'None'}\n\nSYSTEM LOGS:\n` + logHistory.join('\n');
-      
-      const blob = new Blob([exportContent], { type: 'text/plain' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `Safety_Vest_Report_${Date.now()}.txt`;
-      a.click();
-    }
-
-    // Helper for Threshold Colors
-    function applyThreshold(elementId, value, warnLimit, dangerLimit) {
-      const el = document.getElementById(elementId);
-      el.classList.remove('gauge-warning', 'gauge-danger');
-      if (value >= dangerLimit) el.classList.add('gauge-danger');
-      else if (value >= warnLimit) el.classList.add('gauge-warning');
-    }
-
-    // 3. Realtime Firebase Processor & Heartbeat
     db.ref('/worker1').on('value', (snapshot) => {
       const data = snapshot.val();
       if(!data) return;
-
-      // Ping & Connection Heartbeat Status
-      document.getElementById('pingText').innerText = 'ONLINE';
-      document.getElementById('pingDot').style.background = 'var(--green-glow)';
-
-      // Sensors & Progress Gauges
       if(data.environment) {
-        const t = data.environment.temperature || 0;
-        const h = data.environment.humidity || 0;
-        const p = data.environment.pressure || 0;
-
-        document.getElementById('temp').innerText = t.toFixed(1);
-        document.getElementById('hum').innerText = h.toFixed(1);
-        document.getElementById('pres').innerText = p.toFixed(1);
-
-        document.getElementById('tempBar').style.width = Math.min((t / 60) * 100, 100) + '%';
-        document.getElementById('humBar').style.width = Math.min(h, 100) + '%';
-        document.getElementById('presBar').style.width = Math.min((p / 1100) * 100, 100) + '%';
-
-        applyThreshold('tempBar', t, 40, 50);
-        applyThreshold('humBar', h, 80, 90);
-      }
-
-      if(data.status) {
-        document.getElementById('motion').innerText = (data.status.motion_state || 'UNKNOWN').toUpperCase();
-      }
-
-      if(data.battery) {
-        const v = data.battery.voltage || 0;
-        document.getElementById('batt').innerText = v.toFixed(2);
-        document.getElementById('battBar').style.width = Math.min((v / 4.2) * 100, 100) + '%';
-        applyThreshold('battBar', 4.2 - v, 0.8, 1.0);
-      }
-
-      // GPS Coordinates & Polyline Trail Rendering
-      if(data.gps && data.gps.latitude && data.gps.longitude) {
-        const lat = data.gps.latitude;
-        const lng = data.gps.longitude;
-        if(lat !== 0 && lng !== 0) {
-          const newLatLng = [lat, lng];
-          marker.setLatLng(newLatLng);
-          routePolyline.addLatLng(newLatLng);
-          map.panTo(newLatLng);
-        }
-      }
-
-      // Threat Assessment Engine
-      const alertCard = document.getElementById('alertCard');
-      const alertTxt = document.getElementById('alert');
-      const fall = data.alerts ? data.alerts.fall_detected : false;
-      const sos = data.alerts ? data.alerts.sos_active : false;
-
-      if(fall || sos) {
-        alertCard.classList.add('danger');
-        const alertMsg = sos ? 'EMERGENCY: MANUAL SOS TRIGGERED' : 'CRITICAL: FALL DETECTED';
-        alertTxt.innerText = alertMsg;
-        triggerSiren();
-        addLog(`CRITICAL ALERT! ${alertMsg}`);
-      } else {
-        alertCard.classList.remove('danger');
-        alertTxt.innerText = 'SYSTEM NORMAL — ALL METRICS SECURE';
-        addLog('Telemetry Sync OK. All systems normal.');
+        document.getElementById('tempVal').innerText = data.environment.temperature.toFixed(1);
+        document.getElementById('humVal').innerText = data.environment.humidity.toFixed(1);
+        document.getElementById('presVal').innerText = data.environment.pressure.toFixed(0);
       }
     });
   </script>
