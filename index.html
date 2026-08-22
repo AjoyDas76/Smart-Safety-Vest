@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SMART SAFETY VEST // TACTICAL COMMAND CENTER v4.1</title>
+  <title>SMART SAFETY VEST // REAL-TIME COMMAND CENTER</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,20 +18,39 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <style>
+    /* Dark Theme Variables (Default) */
     :root {
       --bg-gradient: radial-gradient(circle at 50% 10%, #0d1b2a 0%, #050b14 100%);
-      --glass-bg: rgba(13, 25, 44, 0.45);
+      --glass-bg: rgba(13, 25, 44, 0.55);
       --glass-border: rgba(0, 242, 255, 0.25);
-      --glass-shine: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.01) 100%);
-      --card-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+      --glass-shine: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 100%);
+      --card-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
       --cyan: #00f2ff;
       --cyan-glow: rgba(0, 242, 255, 0.3);
       --green: #10b981;
-      --red: #ff0055;
+      --red: #ff3366;
       --amber: #f59e0b;
+      --purple: #a855f7;
+      --yellow: #eab308;
       --text-main: #f8fafc;
       --text-muted: #8493a8;
       --border-subtle: rgba(255, 255, 255, 0.08);
+      --aside-bg: rgba(6, 12, 23, 0.95);
+    }
+
+    /* Light Theme Variables */
+    body.light-theme {
+      --bg-gradient: radial-gradient(circle at 50% 10%, #e2e8f0 0%, #cbd5e1 100%);
+      --glass-bg: rgba(255, 255, 255, 0.65);
+      --glass-border: rgba(0, 162, 255, 0.4);
+      --glass-shine: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.2) 100%);
+      --card-glow: 0 8px 24px 0 rgba(0, 0, 0, 0.08);
+      --cyan: #0077ff;
+      --cyan-glow: rgba(0, 119, 255, 0.3);
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --border-subtle: rgba(0, 0, 0, 0.08);
+      --aside-bg: rgba(255, 255, 255, 0.95);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -41,72 +60,72 @@
       background: var(--bg-gradient);
       color: var(--text-main);
       display: flex;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100vh;
+      overflow-x: hidden;
       position: relative;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* Glassmorphism Panel with Hover Cyan Glow Effect */
+    .glass-panel {
+      background: var(--glass-shine), var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      box-shadow: var(--card-glow);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* HOVER CYAN GLOW FEATURE */
+    .glass-panel:hover {
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px var(--cyan-glow), var(--card-glow);
+      transform: translateY(-2px);
     }
 
     /* Collapsible Side Navigation Bar */
     aside {
       width: 240px;
-      background: rgba(6, 12, 23, 0.85);
+      background: var(--aside-bg);
       border-right: 1px solid var(--glass-border);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
       display: flex;
       flex-direction: column;
       padding: 16px 12px;
-      z-index: 100;
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: -240px; /* Initially hidden off-screen */
-      transition: left 0.3s ease-in-out;
-      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+      z-index: 1001;
+      position: fixed;
+      top: 0; bottom: 0; left: -240px;
+      transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 10px 0 30px rgba(0, 0, 0, 0.4);
     }
 
-    /* Visible class when menu icon is clicked */
-    aside.open {
-      left: 0;
-    }
+    aside.open { left: 0; }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 10px;
-      margin-bottom: 20px;
-    }
+    .brand { display: flex; align-items: center; gap: 12px; padding: 8px 10px; margin-bottom: 20px; }
     .brand-icon {
       width: 36px; height: 36px;
       background: radial-gradient(circle, var(--cyan) 0%, #0072ff 100%);
       border-radius: 8px;
       display: grid; place-items: center;
-      color: #000; font-size: 18px;
+      color: #fff; font-size: 18px;
       box-shadow: 0 0 12px var(--cyan);
     }
-    .brand-text h1 {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 13px; font-weight: 800; letter-spacing: 0.5px;
-    }
-    .brand-text span {
-      font-size: 8px; color: var(--text-muted); display: block; margin-top: 2px; letter-spacing: 1px;
-    }
+    .brand-text h1 { font-family: 'Orbitron', sans-serif; font-size: 13px; font-weight: 800; letter-spacing: 0.5px; }
+    .brand-text span { font-size: 8px; color: var(--text-muted); display: block; margin-top: 2px; letter-spacing: 1px; }
 
-    .nav-menu {
-      list-style: none; display: flex; flex-direction: column; gap: 4px; flex: 1;
-    }
+    .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 4px; flex: 1; }
     .nav-item a {
       display: flex; align-items: center; gap: 12px; padding: 10px 14px;
       color: var(--text-muted); text-decoration: none; border-radius: 8px; font-size: 13px; font-weight: 500;
       transition: all 0.25s ease;
     }
     .nav-item.active a, .nav-item a:hover {
-      background: rgba(0, 242, 255, 0.12);
-      color: #fff;
+      background: rgba(0, 242, 255, 0.15);
+      color: var(--text-main);
       border: 1px solid var(--glass-border);
-      box-shadow: 0 0 15px rgba(0, 242, 255, 0.15);
-      backdrop-filter: blur(10px);
+      box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
     }
 
     /* Main Dashboard Layout */
@@ -116,46 +135,25 @@
       flex-direction: column;
       padding: 14px 18px;
       gap: 12px;
-      overflow-y: auto;
       width: 100%;
+      min-width: 0;
     }
 
-    /* Glassmorphism Generic Card Styling */
-    .card {
-      background: var(--glass-shine), var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 14px; padding: 14px;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      box-shadow: var(--card-glow); position: relative;
-    }
+    .card { padding: 14px; position: relative; width: 100%; }
 
-    /* Top Navigation Header */
+    /* Header Controls */
     header {
       display: flex; justify-content: space-between; align-items: center;
-      background: var(--glass-shine), var(--glass-bg); 
-      border: 1px solid var(--glass-border);
-      border-radius: 10px; padding: 10px 20px; 
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      box-shadow: var(--card-glow);
+      padding: 10px 20px; flex-wrap: wrap; gap: 10px;
     }
-    .header-left { display: flex; align-items: center; gap: 16px; }
+    .header-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     
     .nav-toggle { 
-      color: var(--cyan); 
-      font-size: 18px; 
-      cursor: pointer; 
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--glass-border);
-      background: rgba(0, 242, 255, 0.05);
-      transition: all 0.2s ease;
+      color: var(--cyan); font-size: 18px; cursor: pointer; padding: 6px 10px;
+      border-radius: 6px; border: 1px solid var(--glass-border);
+      background: rgba(0, 242, 255, 0.05); transition: all 0.2s ease;
     }
-    .nav-toggle:hover {
-      background: rgba(0, 242, 255, 0.2);
-      box-shadow: 0 0 10px var(--cyan-glow);
-    }
+    .nav-toggle:hover { background: rgba(0, 242, 255, 0.2); box-shadow: 0 0 10px var(--cyan-glow); }
 
     .cmd-title { font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 800; letter-spacing: 1px; }
 
@@ -163,17 +161,40 @@
       display: inline-flex; align-items: center; gap: 6px; font-size: 11px;
       font-family: 'Orbitron', sans-serif; color: var(--amber);
       background: rgba(245, 158, 11, 0.15); padding: 4px 12px; border-radius: 20px;
-      border: 1px solid rgba(245, 158, 11, 0.4); margin-left: 12px;
+      border: 1px solid rgba(245, 158, 11, 0.4);
     }
-    .status-badge.connected {
-      color: var(--green); background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4);
-    }
+    .status-badge.connected { color: var(--green); background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); }
 
-    .header-right { display: flex; align-items: center; gap: 20px; font-size: 12px; }
+    .header-right { display: flex; align-items: center; gap: 12px; font-size: 12px; flex-wrap: wrap; }
     .clock-box { font-family: 'Orbitron', sans-serif; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
 
-    /* Layout Rows & Cards */
-    .row { display: flex; gap: 12px; width: 100%; }
+    /* Theme & Audio Toggle Action Buttons */
+    .btn-action {
+      background: rgba(0, 242, 255, 0.1);
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .btn-action:hover {
+      background: var(--cyan);
+      color: #000;
+      box-shadow: 0 0 12px var(--cyan-glow);
+    }
+    .btn-action.active-sound {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    .row { display: flex; gap: 12px; width: 100%; flex-wrap: wrap; }
     .card-title {
       font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 700;
       color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;
@@ -181,26 +202,26 @@
     }
 
     /* Top Row Widgets */
-    .system-card { flex: 1.8; display: flex; align-items: center; gap: 16px; }
+    .system-card { flex: 1.8; min-width: 250px; display: flex; align-items: center; gap: 16px; }
     .system-icon {
       width: 54px; height: 54px; border-radius: 50%;
       background: rgba(245, 158, 11, 0.1); border: 2px solid var(--amber);
       display: grid; place-items: center; color: var(--amber); font-size: 24px;
-      box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); flex-shrink: 0;
     }
     .system-icon.active {
       background: rgba(16, 185, 129, 0.1); border-color: var(--green); color: var(--green);
       box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
     }
-    .system-text h2 { font-family: 'Orbitron', sans-serif; font-size: 18px; color: var(--amber); font-weight: 800; }
+    .system-text h2 { font-family: 'Orbitron', sans-serif; font-size: 16px; color: var(--amber); font-weight: 800; }
     .system-text h2.active { color: var(--green); }
     .system-text h3 { font-size: 12px; font-weight: 700; color: var(--text-main); margin-top: 2px; }
     .system-text p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
     .sos-card {
-      flex: 0.8; background: radial-gradient(circle at center, rgba(255,0,85,0.25) 0%, rgba(13,25,44,0.6) 100%);
+      flex: 0.8; min-width: 130px; background: radial-gradient(circle at center, rgba(255,0,85,0.25) 0%, rgba(13,25,44,0.6) 100%);
       border: 1px solid rgba(255,0,85,0.6); text-align: center; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; cursor: pointer;
+      align-items: center; justify-content: center; cursor: pointer; padding: 12px;
     }
     .sos-btn {
       width: 50px; height: 50px; border-radius: 50%; background: var(--red);
@@ -208,60 +229,115 @@
       display: grid; place-items: center; box-shadow: 0 0 20px var(--red); border: 2px solid #fff;
     }
 
-    .worker-info-card { flex: 2; display: flex; align-items: center; gap: 16px; }
+    .worker-info-card { flex: 2; min-width: 280px; display: flex; align-items: center; gap: 16px; }
     .worker-avatar {
       width: 48px; height: 48px; border-radius: 50%; background: rgba(0,242,255,0.1);
-      border: 1px solid var(--cyan); display: grid; place-items: center; color: var(--cyan); font-size: 22px;
+      border: 1px solid var(--cyan); display: grid; place-items: center; color: var(--cyan); font-size: 22px; flex-shrink: 0;
     }
-    .worker-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 20px; font-size: 11px; width: 100%; }
+    .worker-details { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px 12px; font-size: 11px; width: 100%; }
     .worker-details span { color: var(--text-muted); }
 
-    /* Sensor Grid - 3 Columns x 2 Rows */
-    .sensor-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; }
-    .sensor-card { height: 130px; display: flex; flex-direction: column; justify-content: space-between; }
-    .sensor-header { display: flex; justify-content: space-between; align-items: center; }
-    .sensor-title { font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-    .sensor-icon { font-size: 14px; color: var(--cyan); }
-    .sensor-val { font-family: 'Orbitron', sans-serif; font-size: 22px; font-weight: 800; margin: 4px 0; }
-    .sensor-sub { font-size: 9px; color: var(--text-muted); display: flex; justify-content: space-between; }
-    .sparkline-box { height: 30px; width: 100%; }
+    /* SENSOR METRICS GRID (RESPONSIVE) */
+    .sensor-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; width: 100%; }
+    
+    .sensor-card-v2 {
+      padding: 12px 10px 0px 10px;
+      display: flex; flex-direction: column; justify-content: space-between;
+      height: 150px; position: relative; overflow: hidden;
+    }
 
-    /* Middle Data Row */
+    .sensor-body-v2 { display: flex; gap: 10px; align-items: flex-start; }
+    .sensor-icon-box { font-size: 28px; display: flex; align-items: center; justify-content: center; min-width: 32px; padding-top: 2px; }
+    .sensor-info-box { display: flex; flex-direction: column; flex: 1; }
+
+    .sensor-title-v2 {
+      font-family: 'Orbitron', sans-serif; font-size: 8px; font-weight: 700;
+      color: var(--text-muted); letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 2px;
+    }
+
+    .sensor-val-v2 {
+      font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 800; color: var(--text-main);
+      display: flex; align-items: baseline; gap: 3px;
+    }
+    .sensor-val-v2 small { font-size: 10px; color: var(--cyan); font-weight: 500; }
+
+    .sensor-status-v2 { font-size: 11px; font-weight: 600; color: var(--amber); margin-top: 1px; }
+    .sensor-range-v2 { font-size: 8px; color: var(--text-muted); margin-top: 3px; }
+
+    .sparkline-box-v2 { height: 45px; width: 105%; margin-left: -2.5%; margin-bottom: 0px; }
+
+    .battery-bar-container {
+      width: 100%; height: 4px; background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px; margin-top: 6px; overflow: hidden;
+    }
+    .battery-bar-fill {
+      height: 100%; width: 0%; background: var(--amber);
+      box-shadow: 0 0 8px var(--amber); border-radius: 2px; transition: width 0.4s ease;
+    }
+
+    /* Middle Row Flexible Layout */
+    .col-flex-1 { flex: 1; min-width: 250px; }
+    .col-flex-2 { flex: 2; min-width: 300px; }
+    .col-flex-1-5 { flex: 1.5; min-width: 280px; }
+
     .device-conn-list { display: flex; flex-direction: column; gap: 8px; font-size: 11px; }
     .device-item { display: flex; justify-content: space-between; align-items: center; }
     .device-name { display: flex; align-items: center; gap: 8px; }
     .device-name i { color: var(--cyan); width: 14px; }
     .signal-bar-box { margin-top: 10px; border-top: 1px solid var(--border-subtle); padding-top: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
 
-    .chart-box { height: 185px; position: relative; }
-    #map { height: 185px; width: 100%; border-radius: 8px; filter: invert(100%) hue-rotate(190deg) brightness(90%) contrast(110%); }
+    .chart-box { height: 200px; position: relative; width: 100%; }
+    #map { height: 200px; width: 100%; border-radius: 8px; filter: invert(100%) hue-rotate(190deg) brightness(90%) contrast(110%); }
 
-    /* Tables */
-    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    /* Tables Responsive Container */
+    .table-container { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 280px; }
     th { color: var(--text-muted); font-weight: 600; padding: 6px; border-bottom: 1px solid var(--border-subtle); text-align: left; }
-    td { padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    td { padding: 6px; border-bottom: 1px solid var(--border-subtle); }
+    
     .badge { padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 700; font-family: 'Orbitron', sans-serif; display: inline-block; }
     .badge-safe { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid var(--green); }
-    .badge-wait { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid var(--amber); }
-    .badge-high { background: rgba(255,0,85,0.15); color: var(--red); border: 1px solid var(--red); }
+    .badge-alert { background: rgba(255,51,102,0.15); color: var(--red); border: 1px solid var(--red); }
 
-    /* Alert Banner Card */
     .alert-card { border: 1px solid rgba(255,0,85,0.5); background: rgba(255,0,85,0.08); }
     .alert-count { background: var(--red); color: #fff; font-size: 9px; padding: 1px 6px; border-radius: 10px; }
 
-    /* Footer Navigation Line */
-    footer { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--text-muted); padding: 4px 8px; }
+    footer { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--text-muted); padding: 8px; flex-wrap: wrap; gap: 6px; }
+
+    /* ========================================== */
+    /* MOBILE & TABLET MEDIA QUERIES (RESPONSIVE) */
+    /* ========================================== */
+    @media (max-width: 1200px) {
+      .sensor-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      main { padding: 8px; }
+      header { padding: 10px; flex-direction: column; align-items: flex-start; }
+      .header-right { width: 100%; justify-content: space-between; margin-top: 6px; }
+      .cmd-title { font-size: 12px; }
+      .sensor-grid { grid-template-columns: repeat(2, 1fr); }
+      .worker-details { grid-template-columns: 1fr; }
+      .row { flex-direction: column; }
+      .col-flex-1, .col-flex-2, .col-flex-1-5, .system-card, .sos-card, .worker-info-card { width: 100%; flex: auto; }
+    }
+
+    @media (max-width: 480px) {
+      .sensor-grid { grid-template-columns: 1fr; }
+      .system-card { flex-direction: column; text-align: center; }
+      .worker-info-card { flex-direction: column; text-align: center; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Left Sidebar Navigation (Initially Hidden) -->
+  <!-- Collapsible Navigation -->
   <aside id="sidebar">
     <div class="brand">
       <div class="brand-icon"><i class="fa-solid fa-vest-patches"></i></div>
       <div class="brand-text">
         <h1>SMART SAFETY VEST</h1>
-        <span>REAL-TIME MONITORING SYSTEM</span>
+        <span>REAL-TIME MONITORING</span>
       </div>
     </div>
     <ul class="nav-menu">
@@ -271,46 +347,44 @@
       <li class="nav-item"><a href="#"><i class="fa-solid fa-triangle-exclamation"></i> Alerts</a></li>
       <li class="nav-item"><a href="#"><i class="fa-solid fa-map-location-dot"></i> Map Tracking</a></li>
       <li class="nav-item"><a href="#"><i class="fa-solid fa-clock-rotate-left"></i> History / Logs</a></li>
-      <li class="nav-item"><a href="#"><i class="fa-solid fa-chart-pie"></i> Reports</a></li>
-      <li class="nav-item"><a href="#"><i class="fa-solid fa-microchip"></i> Devices</a></li>
-      <li class="nav-item"><a href="#"><i class="fa-solid fa-gear"></i> Settings</a></li>
-      <li class="nav-item"><a href="#"><i class="fa-solid fa-user-gear"></i> Profile</a></li>
-      <li class="nav-item"><a href="#"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
     </ul>
   </aside>
 
-  <!-- Main Body Content -->
+  <!-- Main Content Area -->
   <main id="mainContent">
-    <!-- Header Bar -->
-    <header>
+    <header class="glass-panel">
       <div class="header-left">
         <i class="fa-solid fa-bars nav-toggle" id="menuBtn"></i>
-        <span class="cmd-title">VEST COMMAND // TACTICAL v4.1</span>
-        <span class="status-badge" id="connPill"><i class="fa-solid fa-circle" style="font-size: 6px;"></i> WAITING FOR DATA</span>
+        <span class="cmd-title">VEST COMMAND</span>
+        <span class="status-badge" id="connPill"><i class="fa-solid fa-circle" style="font-size: 6px;"></i> WAITING</span>
       </div>
       <div class="header-right">
+        <!-- Audio Alarm Toggle Button -->
+        <button class="btn-action" id="audioBtn" onclick="toggleAudio()"><i class="fa-solid fa-volume-xmark" id="audioIcon"></i> Audio: OFF</button>
+        <!-- Theme Toggle Button -->
+        <button class="btn-action" onclick="toggleTheme()"><i class="fa-solid fa-circle-half-stroke"></i> Theme</button>
+        
         <div class="clock-box"><i class="fa-regular fa-clock"></i> <span id="liveClock">--:--:--</span></div>
-        <div><i class="fa-solid fa-user-shield" style="color: var(--cyan);"></i> Supervisor Admin <i class="fa-solid fa-chevron-down" style="font-size: 10px;"></i></div>
       </div>
     </header>
 
-    <!-- Top Info Row -->
+    <!-- Top Status Cards -->
     <div class="row">
-      <div class="card system-card">
+      <div class="card glass-panel system-card">
         <div class="system-icon" id="sysIcon"><i class="fa-solid fa-hourglass-start"></i></div>
         <div class="system-text">
           <h2 id="sysStatusText">AWAITING FIREBASE DATA</h2>
           <h3 id="sysSubText">NO DATA STREAM RECEIVED YET</h3>
-          <p>Everything is operating within safe parameters.</p>
+          <p>Connecting to Realtime Database...</p>
         </div>
       </div>
 
-      <div class="card sos-card" onclick="triggerSOS()">
+      <div class="card glass-panel sos-card" onclick="triggerSOS()">
         <div class="sos-btn">SOS</div>
-        <span style="font-size: 8px; color: #ff80a8; margin-top: 6px; font-weight: 700; font-family: Orbitron;">EMERGENCY PRESS & HOLD</span>
+        <span style="font-size: 8px; color: #ff80a8; margin-top: 6px; font-weight: 700; font-family: Orbitron;">EMERGENCY SOS</span>
       </div>
 
-      <div class="card worker-info-card">
+      <div class="card glass-panel worker-info-card">
         <div class="worker-avatar"><i class="fa-solid fa-user"></i></div>
         <div class="worker-details">
           <div><span>Worker ID :</span> SV-001</div>
@@ -318,61 +392,120 @@
           <div><span>Name :</span> Worker 01</div>
           <div><span>Shift :</span> 08:00 - 16:00</div>
           <div><span>Vest ID :</span> VEST-001</div>
-          <div><span>Last Update :</span> <span id="lastSyncTime">--:--:--</span></div>
+          <div><span>Last Sync :</span> <span id="lastSyncTime">--:--:--</span></div>
         </div>
       </div>
     </div>
 
-    <!-- Sensor Metrics Grid -->
+    <!-- SENSOR METRICS GRID -->
     <div class="sensor-grid">
-      <div class="card sensor-card">
-        <div class="sensor-header"><span class="sensor-title">Temperature</span><i class="fa-solid fa-temperature-half sensor-icon"></i></div>
-        <div class="sensor-val"><span id="tempVal">--</span> <small style="font-size: 10px; color: var(--cyan);">°C</small></div>
-        <div class="sensor-sub"><span id="tempStatus">Awaiting</span><span>Range: 15°C - 45°C</span></div>
-        <div class="sparkline-box"><canvas id="tempSpark"></canvas></div>
+      
+      <!-- Temperature -->
+      <div class="sensor-card-v2 glass-panel">
+        <div class="sensor-body-v2">
+          <div class="sensor-icon-box" style="color: var(--red); filter: drop-shadow(0 0 6px rgba(255,51,102,0.6));">
+            <i class="fa-solid fa-temperature-half"></i>
+          </div>
+          <div class="sensor-info-box">
+            <span class="sensor-title-v2">TEMPERATURE</span>
+            <div class="sensor-val-v2"><span id="tempVal">--</span> <small>°C</small></div>
+            <span class="sensor-status-v2" id="tempStatus">Waiting...</span>
+            <span class="sensor-range-v2">Range: 15°C - 45°C</span>
+          </div>
+        </div>
+        <div class="sparkline-box-v2"><canvas id="tempSpark"></canvas></div>
       </div>
 
-      <div class="card sensor-card">
-        <div class="sensor-header"><span class="sensor-title">Humidity</span><i class="fa-solid fa-droplet sensor-icon"></i></div>
-        <div class="sensor-val"><span id="humVal">--</span> <small style="font-size: 10px; color: var(--cyan);">%</small></div>
-        <div class="sensor-sub"><span id="humStatus">Awaiting</span><span>Range: 20% - 90%</span></div>
-        <div class="sparkline-box"><canvas id="humSpark"></canvas></div>
+      <!-- Humidity -->
+      <div class="sensor-card-v2 glass-panel">
+        <div class="sensor-body-v2">
+          <div class="sensor-icon-box" style="color: var(--cyan); filter: drop-shadow(0 0 6px rgba(0,242,255,0.6));">
+            <i class="fa-solid fa-droplet"></i>
+          </div>
+          <div class="sensor-info-box">
+            <span class="sensor-title-v2">HUMIDITY</span>
+            <div class="sensor-val-v2"><span id="humVal">--</span> <small>%</small></div>
+            <span class="sensor-status-v2" id="humStatus">Waiting...</span>
+            <span class="sensor-range-v2">Range: 20% - 90%</span>
+          </div>
+        </div>
+        <div class="sparkline-box-v2"><canvas id="humSpark"></canvas></div>
       </div>
 
-      <div class="card sensor-card">
-        <div class="sensor-header"><span class="sensor-title">Pressure</span><i class="fa-solid fa-gauge-high sensor-icon"></i></div>
-        <div class="sensor-val"><span id="presVal">--</span> <small style="font-size: 10px; color: var(--cyan);">hPa</small></div>
-        <div class="sensor-sub"><span id="presStatus">Awaiting</span><span>Range: 950 - 1050 hPa</span></div>
-        <div class="sparkline-box"><canvas id="presSpark"></canvas></div>
+      <!-- Pressure -->
+      <div class="sensor-card-v2 glass-panel">
+        <div class="sensor-body-v2">
+          <div class="sensor-icon-box" style="color: var(--purple); filter: drop-shadow(0 0 6px rgba(168,85,247,0.6));">
+            <i class="fa-solid fa-gauge-high"></i>
+          </div>
+          <div class="sensor-info-box">
+            <span class="sensor-title-v2">PRESSURE</span>
+            <div class="sensor-val-v2"><span id="presVal">--</span> <small>hPa</small></div>
+            <span class="sensor-status-v2" id="presStatus">Waiting...</span>
+            <span class="sensor-range-v2">Range: 950 - 1050 hPa</span>
+          </div>
+        </div>
+        <div class="sparkline-box-v2"><canvas id="presSpark"></canvas></div>
       </div>
 
-      <div class="card sensor-card">
-        <div class="sensor-header"><span class="sensor-title">Gas / Air Quality</span><i class="fa-solid fa-cloud sensor-icon"></i></div>
-        <div class="sensor-val"><span id="gasVal">--</span> <small style="font-size: 10px; color: var(--cyan);">ppm</small></div>
-        <div class="sensor-sub"><span id="gasStatus">Awaiting</span><span>Range: 0 - 50 ppm</span></div>
-        <div class="sparkline-box"><canvas id="gasSpark"></canvas></div>
+      <!-- Gas / Air Quality -->
+      <div class="sensor-card-v2 glass-panel">
+        <div class="sensor-body-v2">
+          <div class="sensor-icon-box" style="color: var(--yellow); filter: drop-shadow(0 0 6px rgba(234,179,8,0.6));">
+            <i class="fa-solid fa-cloud-showers-heavy"></i>
+          </div>
+          <div class="sensor-info-box">
+            <span class="sensor-title-v2">GAS / AIR QUALITY</span>
+            <div class="sensor-val-v2"><span id="gasVal">--</span> <small>ppm</small></div>
+            <span class="sensor-status-v2" id="gasStatus">Waiting...</span>
+            <span class="sensor-range-v2">Range: 0 - 50 ppm</span>
+          </div>
+        </div>
+        <div class="sparkline-box-v2"><canvas id="gasSpark"></canvas></div>
       </div>
 
-      <div class="card sensor-card">
-        <div class="sensor-header"><span class="sensor-title">Heart Rate</span><i class="fa-solid fa-heart-pulse sensor-icon" style="color: var(--red);"></i></div>
-        <div class="sensor-val"><span id="hrVal">--</span> <small style="font-size: 10px; color: var(--cyan);">bpm</small></div>
-        <div class="sensor-sub"><span id="hrStatus">Awaiting</span><span>Range: 50 - 120 bpm</span></div>
-        <div class="sparkline-box"><canvas id="hrSpark"></canvas></div>
+      <!-- Heart Rate -->
+      <div class="sensor-card-v2 glass-panel">
+        <div class="sensor-body-v2">
+          <div class="sensor-icon-box" style="color: var(--red); filter: drop-shadow(0 0 6px rgba(255,51,102,0.6));">
+            <i class="fa-solid fa-heart-pulse"></i>
+          </div>
+          <div class="sensor-info-box">
+            <span class="sensor-title-v2">HEART RATE</span>
+            <div class="sensor-val-v2"><span id="hrVal">--</span> <small>bpm</small></div>
+            <span class="sensor-status-v2" id="hrStatus">Waiting...</span>
+            <span class="sensor-range-v2">Range: 50 - 120 bpm</span>
+          </div>
+        </div>
+        <div class="sparkline-box-v2"><canvas id="hrSpark"></canvas></div>
       </div>
 
-      <div class="card sensor-card">
-        <div class="sensor-header"><span class="sensor-title">Battery</span><i class="fa-solid fa-battery-three-quarters sensor-icon" style="color: var(--green);"></i></div>
-        <div class="sensor-val"><span id="battVal">--</span> <small style="font-size: 10px; color: var(--cyan);">%</small></div>
-        <div class="sensor-sub"><span id="battVolt">-- V</span><span>Est. --</span></div>
-        <div style="width: 100%; height: 5px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 10px;">
-          <div id="battBar" style="width: 0%; height: 100%; background: var(--green); border-radius: 4px; transition: width 0.3s;"></div>
+      <!-- Battery -->
+      <div class="sensor-card-v2 glass-panel">
+        <div class="sensor-body-v2">
+          <div class="sensor-icon-box" style="color: var(--green); filter: drop-shadow(0 0 6px rgba(16,185,129,0.6));">
+            <i class="fa-solid fa-battery-three-quarters"></i>
+          </div>
+          <div class="sensor-info-box">
+            <span class="sensor-title-v2">BATTERY</span>
+            <div class="sensor-val-v2"><span id="battVal">--</span> <small>%</small></div>
+            <span class="sensor-status-v2" id="battStatus">Waiting...</span>
+            <div class="battery-bar-container">
+              <div class="battery-bar-fill" id="battBar"></div>
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-top: 18px; padding: 0 4px;">
+          <span id="battVolt">-- V</span>
+          <span id="battEst">--</span>
         </div>
       </div>
+
     </div>
 
-    <!-- Middle Interactive Row -->
+    <!-- Middle Data Row -->
     <div class="row">
-      <div class="card" style="flex: 1;">
+      <div class="card glass-panel col-flex-1">
         <div class="card-title">Device Connection</div>
         <div class="device-conn-list">
           <div class="device-item"><div class="device-name"><i class="fa-solid fa-microchip"></i> ESP32</div> <span id="stEsp32" style="color: var(--amber);">Waiting...</span></div>
@@ -384,117 +517,139 @@
         </div>
         <div class="signal-bar-box">
           <span>Signal Strength</span>
-          <span style="color: var(--green); font-weight: 700;" id="rssiVal">-- dBm</span>
+          <span style="color: var(--amber); font-weight: 700;" id="rssiVal">-- dBm</span>
         </div>
       </div>
 
-      <div class="card" style="flex: 2;">
-        <div class="card-title">Live Sensor Data (Last 10 Minutes)</div>
+      <div class="card glass-panel col-flex-2">
+        <div class="card-title">Live Temperature Chart</div>
         <div class="chart-box"><canvas id="mainChart"></canvas></div>
       </div>
 
-      <div class="card" style="flex: 1.5;">
-        <div class="card-title">Live Location Tracking <span style="font-size: 9px; color: var(--cyan); cursor: pointer;">Fullscreen</span></div>
+      <div class="card glass-panel col-flex-1-5">
+        <div class="card-title">Live Location Tracking</div>
         <div id="map"></div>
       </div>
     </div>
 
-    <!-- Bottom Row Logs & Active Alerts -->
+    <!-- Bottom Row Logs & Alerts -->
     <div class="row">
-      <div class="card" style="flex: 1;">
+      <div class="card glass-panel col-flex-1">
         <div class="card-title">Workers Online</div>
         <div style="font-family: Orbitron; font-size: 20px; font-weight: 800; margin-bottom: 6px;" id="onlineWorkerCount">0 / 20</div>
-        <div style="font-size: 9px; color: var(--text-muted); margin-bottom: 8px;">Total Connected</div>
+        <div style="font-size: 9px; color: var(--text-muted); margin-bottom: 8px;">Total Active Streaming</div>
         <div style="width: 100%; height: 5px; background: rgba(255,255,255,0.1); border-radius: 4px;">
-          <div id="onlineWorkerBar" style="width: 0%; height: 100%; background: var(--green); border-radius: 4px;"></div>
+          <div id="onlineWorkerBar" style="width: 0%; height: 100%; background: var(--green); border-radius: 4px; transition: width 0.3s ease;"></div>
         </div>
       </div>
 
-      <div class="card" style="flex: 2;">
-        <div class="card-title">
-          <span>Event / Alert History</span>
-          <div>
-            <button style="background: transparent; border: 1px solid var(--glass-border); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 9px; cursor: pointer;"><i class="fa-solid fa-download"></i> Export Log</button>
-            <button style="background: rgba(255,0,85,0.2); border: 1px solid var(--red); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 9px; cursor: pointer;"><i class="fa-solid fa-trash"></i> Clear Log</button>
-          </div>
+      <div class="card glass-panel col-flex-2">
+        <div class="card-title">Event / Alert History</div>
+        <div class="table-container">
+          <table>
+            <thead><tr><th>TIME</th><th>EVENT</th><th>STATUS</th><th>VALUE</th></tr></thead>
+            <tbody id="eventLogTable">
+              <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Awaiting realtime sensor data...</td></tr>
+            </tbody>
+          </table>
         </div>
-        <table>
-          <thead><tr><th>TIME</th><th>EVENT</th><th>STATUS</th><th>VALUE</th></tr></thead>
-          <tbody id="eventLogTable">
-            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Awaiting real-time sensor streams...</td></tr>
-          </tbody>
-        </table>
       </div>
 
-      <div class="card alert-card" style="flex: 1.5;">
+      <div class="card glass-panel alert-card col-flex-1-5">
         <div class="card-title">Active Alerts <span class="alert-count" id="activeAlertCount">0</span></div>
         <div id="alertBox">
-          <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 20px 0;">No hazardous alerts active</div>
+          <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 20px 0;">No active hazardous alerts</div>
         </div>
-      </div>
-
-      <div class="card" style="flex: 1.8;">
-        <div class="card-title">All Workers Overview <span style="font-size: 9px; color: var(--cyan); cursor: pointer;">View All</span></div>
-        <table>
-          <thead><tr><th>ID</th><th>NAME</th><th>STATUS</th><th>LAST UPDATE</th></tr></thead>
-          <tbody id="workerOverviewTable">
-            <tr><td>SV-001</td><td>Worker 01</td><td><span class="badge badge-wait" id="tableWorkerBadge">OFFLINE</span></td><td id="tableWorkerTime">--:--:--</td></tr>
-          </tbody>
-        </table>
       </div>
     </div>
 
-    <!-- Footer Note -->
     <footer>
-      <span>© 2025 Smart Safety Vest Monitoring System. All rights reserved.</span>
-      <span>Built with <i class="fa-solid fa-heart" style="color: var(--red);"></i> for Worker Safety</span>
-      <span>v4.1.0</span>
+      <span>© 2026 Smart Safety Vest Monitoring System.</span>
+      <span>Live Firebase Realtime Database Active</span>
     </footer>
   </main>
 
   <script>
-    // 0. Sidebar Toggle Control Logic
+    // Audio Alarm Web Audio API Synthesizer
+    let audioEnabled = false;
+    let audioCtx = null;
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const audioBtn = document.getElementById('audioBtn');
+
+      if (audioEnabled) {
+        audioBtn.classList.add('active-sound');
+        audioBtn.innerHTML = '<i class="fa-solid fa-volume-high" id="audioIcon"></i> Audio: ON';
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      } else {
+        audioBtn.classList.remove('active-sound');
+        audioBtn.innerHTML = '<i class="fa-solid fa-volume-xmark" id="audioIcon"></i> Audio: OFF';
+      }
+    }
+
+    function playEmergencySound() {
+      if (!audioEnabled) return;
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
+      
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+      
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.5);
+    }
+
+    // Theme Switcher Feature
+    function toggleTheme() {
+      document.body.classList.toggle('light-theme');
+    }
+
+    // Sidebar Navigation Control
     const menuBtn = document.getElementById('menuBtn');
     const sidebar = document.getElementById('sidebar');
-
-    menuBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      sidebar.classList.toggle('open');
-    });
-
-    // Close sidebar when clicking outside
+    menuBtn.addEventListener('click', (e) => { e.stopPropagation(); sidebar.classList.toggle('open'); });
     document.addEventListener('click', (e) => {
-      if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== menuBtn) {
-        sidebar.classList.remove('open');
-      }
+      if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && e.target !== menuBtn) sidebar.classList.remove('open');
     });
 
-    // 1. Live Clock Updating
-    setInterval(() => {
-      document.getElementById('liveClock').innerText = new Date().toLocaleTimeString();
-    }, 1000);
+    // Live Clock
+    setInterval(() => { document.getElementById('liveClock').innerText = new Date().toLocaleTimeString(); }, 1000);
 
-    // 2. Leaflet Dark Map Setup
+    // Leaflet Map
     const map = L.map('map', { zoomControl: false }).setView([22.3569, 91.7832], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
     let workerMarker = null;
 
-    // 3. Sparkline Spark Mini Charts Setup
+    // Sparklines
     const sparklineInstances = {};
-    function createSparkline(id, color) {
+    function createSparkline(id, color, bgGradientColor) {
       const ctx = document.getElementById(id).getContext('2d');
+      const gradient = ctx.createLinearGradient(0, 0, 0, 45);
+      gradient.addColorStop(0, bgGradientColor);
+      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
       sparklineInstances[id] = new Chart(ctx, {
         type: 'line',
-        data: { labels: [], datasets: [{ data: [], borderColor: color, borderWidth: 1.5, pointRadius: 0, fill: false }] },
+        data: { labels: [], datasets: [{ data: [], borderColor: color, borderWidth: 1.8, pointRadius: 0, fill: true, backgroundColor: gradient, tension: 0.4 }] },
         options: { plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } }, responsive: true, maintainAspectRatio: false }
       });
     }
 
-    createSparkline('tempSpark', '#ff0055');
-    createSparkline('humSpark', '#00f2ff');
-    createSparkline('presSpark', '#00f2ff');
-    createSparkline('gasSpark', '#f59e0b');
-    createSparkline('hrSpark', '#ff0055');
+    createSparkline('tempSpark', '#ff3366', 'rgba(255, 51, 102, 0.35)');
+    createSparkline('humSpark', '#00f2ff', 'rgba(0, 242, 255, 0.35)');
+    createSparkline('presSpark', '#a855f7', 'rgba(168, 85, 247, 0.35)');
+    createSparkline('gasSpark', '#eab308', 'rgba(234, 179, 8, 0.35)');
+    createSparkline('hrSpark', '#ff3366', 'rgba(255, 51, 102, 0.35)');
 
     function updateSparkline(id, val) {
       const chart = sparklineInstances[id];
@@ -508,13 +663,13 @@
       chart.update();
     }
 
-    // 4. Main Data Chart Setup
+    // Main Live Chart
     const mainChartCtx = document.getElementById('mainChart').getContext('2d');
     const mainChart = new Chart(mainChartCtx, {
       type: 'line',
       data: {
         labels: [],
-        datasets: [{ label: 'Temperature (°C)', data: [], borderColor: '#ff0055', backgroundColor: 'rgba(255,0,85,0.1)', fill: true, tension: 0.3 }]
+        datasets: [{ label: 'Temperature (°C)', data: [], borderColor: '#ff3366', backgroundColor: 'rgba(255,51,102,0.1)', fill: true, tension: 0.3 }]
       },
       options: {
         responsive: true,
@@ -527,7 +682,7 @@
       }
     });
 
-    // 5. FIREBASE REALTIME DATABASE INTEGRATION
+    // FIREBASE REALTIME CONNECTION
     const firebaseConfig = {
       apiKey: "AIzaSyDJl0vyF4mLdMVfIl19bddXGa9GB0jc7RY",
       databaseURL: "https://worker-safety-vest-92b97-default-rtdb.firebaseio.com",
@@ -539,30 +694,26 @@
     }
     const db = firebase.database();
 
-    let hasReceivedFirstData = false;
+    let isConnected = false;
 
-    // Realtime Listener
     db.ref('/sensor_data').on('value', (snapshot) => {
       const data = snapshot.val();
       if (!data) return;
 
-      if (!hasReceivedFirstData) {
-        hasReceivedFirstData = true;
-
+      if (!isConnected) {
+        isConnected = true;
         const connPill = document.getElementById('connPill');
         connPill.classList.add('connected');
-        connPill.innerHTML = '<i class="fa-solid fa-circle" style="font-size: 6px;"></i> CONNECTED';
+        connPill.innerHTML = '<i class="fa-solid fa-circle" style="font-size: 6px;"></i> STREAMING';
 
         const sysIcon = document.getElementById('sysIcon');
         sysIcon.classList.add('active');
         sysIcon.innerHTML = '<i class="fa-solid fa-shield-halved"></i>';
 
-        const sysStatusText = document.getElementById('sysStatusText');
-        sysStatusText.classList.add('active');
-        sysStatusText.innerText = 'SYSTEM NORMAL';
-
-        document.getElementById('sysSubText').innerText = 'ALL METRICS SECURE';
-        document.getElementById('workerStatus').innerText = 'CONNECTED';
+        document.getElementById('sysStatusText').classList.add('active');
+        document.getElementById('sysStatusText').innerText = 'SYSTEM NORMAL';
+        document.getElementById('sysSubText').innerText = 'REALTIME DATA RECEIVING';
+        document.getElementById('workerStatus').innerText = 'ONLINE';
         document.getElementById('workerStatus').style.color = 'var(--green)';
 
         document.getElementById('stEsp32').innerText = 'Connected'; document.getElementById('stEsp32').style.color = 'var(--green)';
@@ -571,27 +722,30 @@
         document.getElementById('stGas').innerText = 'Connected'; document.getElementById('stGas').style.color = 'var(--green)';
         document.getElementById('stTemp').innerText = 'Connected'; document.getElementById('stTemp').style.color = 'var(--green)';
         document.getElementById('stNet').innerText = 'Connected'; document.getElementById('stNet').style.color = 'var(--green)';
-        document.getElementById('rssiVal').innerText = '-62 dBm';
+        document.getElementById('rssiVal').innerText = '-60 dBm';
 
         document.getElementById('onlineWorkerCount').innerText = '1 / 20';
         document.getElementById('onlineWorkerBar').style.width = '5%';
-
-        const tableBadge = document.getElementById('tableWorkerBadge');
-        tableBadge.className = 'badge badge-safe';
-        tableBadge.innerText = 'SAFE';
-
         document.getElementById('eventLogTable').innerHTML = '';
       }
 
       const timeStr = new Date().toLocaleTimeString();
       document.getElementById('lastSyncTime').innerText = timeStr;
-      document.getElementById('tableWorkerTime').innerText = timeStr;
 
+      let isHazard = false;
+
+      // Temperature
       if (data.temperature !== undefined) {
         const val = Number(data.temperature);
         document.getElementById('tempVal').innerText = val.toFixed(1);
-        document.getElementById('tempStatus').innerText = (val > 45 || val < 15) ? 'High Temp' : 'Normal';
-        document.getElementById('tempStatus').style.color = (val > 45 || val < 15) ? 'var(--red)' : 'var(--green)';
+        if (val > 45 || val < 15) {
+          document.getElementById('tempStatus').innerText = 'High Temp';
+          document.getElementById('tempStatus').style.color = 'var(--red)';
+          isHazard = true;
+        } else {
+          document.getElementById('tempStatus').innerText = 'Normal';
+          document.getElementById('tempStatus').style.color = 'var(--green)';
+        }
         updateSparkline('tempSpark', val);
 
         mainChart.data.labels.push(timeStr);
@@ -603,66 +757,89 @@
         mainChart.update();
       }
 
-      if (data.humidity !== undefined) {
-        const val = Number(data.humidity);
-        document.getElementById('humVal').innerText = val.toFixed(1);
-        document.getElementById('humStatus').innerText = 'Normal';
-        document.getElementById('humStatus').style.color = 'var(--green)';
-        updateSparkline('humSpark', val);
-      }
-
-      if (data.pressure !== undefined) {
-        const val = Number(data.pressure);
-        document.getElementById('presVal').innerText = val.toFixed(0);
-        document.getElementById('presStatus').innerText = 'Normal';
-        document.getElementById('presStatus').style.color = 'var(--green)';
-        updateSparkline('presSpark', val);
-      }
-
+      // Gas
       if (data.gas !== undefined) {
         const val = Number(data.gas);
         document.getElementById('gasVal').innerText = val.toFixed(0);
-        document.getElementById('gasStatus').innerText = val > 50 ? 'Hazardous' : 'Good';
-        document.getElementById('gasStatus').style.color = val > 50 ? 'var(--red)' : 'var(--green)';
+        if (val > 50) {
+          document.getElementById('gasStatus').innerText = 'Hazardous';
+          document.getElementById('gasStatus').style.color = 'var(--red)';
+          isHazard = true;
+        } else {
+          document.getElementById('gasStatus').innerText = 'Good';
+          document.getElementById('gasStatus').style.color = 'var(--green)';
+        }
         updateSparkline('gasSpark', val);
       }
 
+      // Heart Rate
       if (data.heart_rate !== undefined) {
         const val = Number(data.heart_rate);
         document.getElementById('hrVal').innerText = val.toFixed(0);
-        document.getElementById('hrStatus').innerText = (val > 120 || val < 50) ? 'Abnormal' : 'Normal';
-        document.getElementById('hrStatus').style.color = (val > 120 || val < 50) ? 'var(--red)' : 'var(--green)';
+        if (val > 120 || val < 50) {
+          document.getElementById('hrStatus').innerText = 'Abnormal';
+          document.getElementById('hrStatus').style.color = 'var(--red)';
+          isHazard = true;
+        } else {
+          document.getElementById('hrStatus').innerText = 'Normal';
+          document.getElementById('hrStatus').style.color = 'var(--green)';
+        }
         updateSparkline('hrSpark', val);
       }
 
+      // Humidity
+      if (data.humidity !== undefined) {
+        document.getElementById('humVal').innerText = Number(data.humidity).toFixed(1);
+        document.getElementById('humStatus').innerText = 'Normal';
+        document.getElementById('humStatus').style.color = 'var(--green)';
+        updateSparkline('humSpark', Number(data.humidity));
+      }
+
+      // Pressure
+      if (data.pressure !== undefined) {
+        document.getElementById('presVal').innerText = Number(data.pressure).toFixed(0);
+        document.getElementById('presStatus').innerText = 'Normal';
+        document.getElementById('presStatus').style.color = 'var(--green)';
+        updateSparkline('presSpark', Number(data.pressure));
+      }
+
+      // Battery
       if (data.battery !== undefined) {
         const val = Number(data.battery);
         document.getElementById('battVal').innerText = val.toFixed(0);
+        document.getElementById('battStatus').innerText = val < 20 ? 'Low Battery' : 'Good';
+        document.getElementById('battStatus').style.color = val < 20 ? 'var(--red)' : 'var(--green)';
         document.getElementById('battBar').style.width = `${Math.min(100, Math.max(0, val))}%`;
+        document.getElementById('battBar').style.background = val < 20 ? 'var(--red)' : 'var(--green)';
+        
         const estVolt = (3.2 + (val / 100) * 1.0).toFixed(1);
         document.getElementById('battVolt').innerText = `${estVolt} V`;
+        document.getElementById('battEst').innerText = `Est. ${Math.round((val/100)*6)}h`;
       }
 
+      // Map GPS
       if (data.latitude && data.longitude) {
         const lat = Number(data.latitude);
         const lng = Number(data.longitude);
         if (!isNaN(lat) && !isNaN(lng)) {
           const coords = [lat, lng];
-          if (!workerMarker) {
-            workerMarker = L.marker(coords).addTo(map);
-          } else {
-            workerMarker.setLatLng(coords);
-          }
+          if (!workerMarker) workerMarker = L.marker(coords).addTo(map);
+          else workerMarker.setLatLng(coords);
           map.panTo(coords);
         }
       }
 
+      if (isHazard) {
+        playEmergencySound();
+      }
+
+      // Append Log Entry
       const eventTable = document.getElementById('eventLogTable');
       const newRow = document.createElement('tr');
       newRow.innerHTML = `
         <td>${timeStr}</td>
-        <td>Data Stream Sync</td>
-        <td><span class="badge badge-safe">SAFE</span></td>
+        <td>${isHazard ? 'Hazard Alert' : 'Packet Sync'}</td>
+        <td><span class="badge ${isHazard ? 'badge-alert' : 'badge-safe'}">${isHazard ? 'ALERT' : 'SAFE'}</span></td>
         <td>Temp: ${data.temperature ?? '--'} °C</td>
       `;
       eventTable.insertBefore(newRow, eventTable.firstChild);
@@ -670,12 +847,13 @@
     });
 
     function triggerSOS() {
+      playEmergencySound();
       db.ref('/alerts').push({
         event: 'EMERGENCY SOS TRIGGERED',
         timestamp: new Date().toISOString(),
         worker_id: 'SV-001'
       });
-      alert('SOS Signal Transmitted to Firebase Command Server!');
+      alert('SOS Signal sent to Firebase!');
     }
   </script>
 </body>
