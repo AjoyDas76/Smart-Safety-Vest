@@ -812,22 +812,11 @@
       });
     }, 2000);
 
-let isSosActive = false;
-
-function triggerSOS() {
-  // সরাসরি ফায়ারবেস ডাটাবেস থেকে বর্তমান মান তুলে নিয়ে টগল করা
-  db.ref('/worker1/alerts/sos_active').once('value').then((snapshot) => {
-    let currentState = snapshot.val() || false;
-    let newState = !currentState;
-
-    if (newState) {
+    function triggerSOS() {
       playEmergencySound();
+      db.ref('/worker1/alerts').update({ sos_active: true });
+      alert('SOS Signal sent!');
     }
-
-    db.ref('/worker1/alerts').update({ sos_active: newState });
-    alert(newState ? 'SOS Activated!' : 'SOS Deactivated!');
-  });
-}
   </script>
 </body>
 </html>
