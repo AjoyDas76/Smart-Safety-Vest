@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Safety Vest v1.0</title>
+  <title>Smart Safety Vest — Ultimate Command Center v4.0</title>
 
   <!-- Google Fonts & Leaflet -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,7 +19,7 @@
   <style>
     :root {
       --bg-dark: #020617;
-      --card-bg: rgba(15, 23, 42, 0.8);
+      --card-bg: rgba(15, 23, 42, 0.85);
       --border-color: rgba(56, 189, 248, 0.2);
       --cyan-glow: #00f2ff;
       --green-glow: #10b981;
@@ -27,6 +27,21 @@
       --amber-glow: #f59e0b;
       --text-main: #f8fafc;
       --text-muted: #64748b;
+      --map-filter: invert(100%) hue-rotate(190deg) brightness(90%) contrast(110%);
+    }
+
+    /* Light Theme Theme Overrides */
+    body.light-theme {
+      --bg-dark: #f1f5f9;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --border-color: rgba(14, 165, 233, 0.3);
+      --cyan-glow: #0284c7;
+      --green-glow: #059669;
+      --red-glow: #dc2626;
+      --amber-glow: #d97706;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --map-filter: none;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -36,6 +51,7 @@
       color: var(--text-main);
       padding: 20px;
       min-height: 100vh;
+      transition: background 0.3s ease, color 0.3s ease;
       background-image: 
         radial-gradient(circle at 50% 0%, rgba(0, 242, 255, 0.05) 0%, transparent 70%),
         linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
@@ -48,39 +64,48 @@
       display: flex; justify-content: space-between; align-items: center;
       padding: 16px 24px; background: var(--card-bg); backdrop-filter: blur(20px);
       border: 1px solid var(--border-color); border-radius: 16px; margin-bottom: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
     .brand-title {
       font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 800;
       letter-spacing: 2px;
-      background: linear-gradient(90deg, #fff, var(--cyan-glow));
+      background: linear-gradient(90deg, var(--text-main), var(--cyan-glow));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
-    .nav-controls { display: flex; align-items: center; gap: 15px; }
+    .nav-controls { display: flex; align-items: center; gap: 12px; }
     
     .btn-action {
       background: rgba(255,255,255,0.05); border: 1px solid var(--border-color);
-      color: #fff; padding: 8px 16px; border-radius: 8px; font-weight: 600;
+      color: var(--text-main); padding: 8px 16px; border-radius: 8px; font-weight: 600;
       cursor: pointer; transition: all 0.3s; font-size: 12px; letter-spacing: 1px;
     }
     .btn-action:hover { background: var(--cyan-glow); color: #000; box-shadow: 0 0 15px var(--cyan-glow); }
 
+    /* Heartbeat Status Indicator */
+    .status-badge {
+      display: flex; align-items: center; gap: 8px; font-family: 'Orbitron', sans-serif;
+      font-size: 11px; padding: 6px 12px; background: rgba(0,0,0,0.2); border-radius: 20px;
+      border: 1px solid var(--border-color);
+    }
+    .pulse-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: var(--green-glow);
+      box-shadow: 0 0 10px var(--green-glow); animation: pulse 1.5s infinite;
+    }
+
     /* Grid Layout */
     .dashboard-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
 
-    /* Tactical Cards with Cyan Hover Glow */
+    /* Tactical Cards with Glow Effect */
     .card {
       background: var(--card-bg); backdrop-filter: blur(20px);
       border: 1px solid var(--border-color); border-radius: 16px; padding: 20px;
       position: relative; overflow: hidden;
       transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-    /* CYAN GLOW HOVER EFFECT */
     .card:hover {
       border-color: var(--cyan-glow) !important;
       transform: translateY(-3px);
-      box-shadow: 0 0 25px rgba(0, 242, 255, 0.35), inset 0 0 15px rgba(0, 242, 255, 0.1);
+      box-shadow: 0 0 25px rgba(0, 242, 255, 0.3), inset 0 0 15px rgba(0, 242, 255, 0.05);
     }
 
     .card-title {
@@ -88,13 +113,17 @@
       text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 12px;
     }
     .value-display {
-      font-family: 'Orbitron', sans-serif; font-size: 32px; font-weight: 800; color: #fff;
+      font-family: 'Orbitron', sans-serif; font-size: 32px; font-weight: 800; color: var(--text-main);
     }
     .unit { font-size: 13px; color: var(--cyan-glow); margin-left: 2px; }
 
     /* Custom Progress Gauges */
     .gauge-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 4px; margin-top: 12px; overflow: hidden; }
-    .gauge-fill { height: 100%; background: var(--cyan-glow); width: 0%; transition: width 0.5s ease; box-shadow: 0 0 10px var(--cyan-glow); }
+    .gauge-fill { height: 100%; background: var(--cyan-glow); width: 0%; transition: width 0.5s ease, background 0.3s ease; box-shadow: 0 0 10px var(--cyan-glow); }
+
+    /* Dynamic Threshold Color States */
+    .gauge-warning { background: var(--amber-glow) !important; box-shadow: 0 0 10px var(--amber-glow) !important; }
+    .gauge-danger { background: var(--red-glow) !important; box-shadow: 0 0 10px var(--red-glow) !important; }
 
     /* Motion Tag */
     .motion-tag {
@@ -111,18 +140,25 @@
     .alert-title { font-family: 'Orbitron', sans-serif; font-size: 18px; font-weight: 800; color: var(--green-glow); }
     .alert-card.danger .alert-title { color: var(--red-glow) !important; }
 
-    /* Live Telemetry Terminal Logs */
+    /* Live Telemetry Terminal & Notes Engine */
     .log-container {
-      height: 120px; overflow-y: auto; font-family: monospace; font-size: 11px;
-      color: var(--cyan-glow); background: rgba(0,0,0,0.5); padding: 10px;
+      height: 110px; overflow-y: auto; font-family: monospace; font-size: 11px;
+      color: var(--cyan-glow); background: rgba(0,0,0,0.4); padding: 10px;
       border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-top: 10px;
     }
     .log-item { margin-bottom: 4px; opacity: 0.8; }
 
+    .notes-input {
+      width: 100%; height: 75px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color);
+      border-radius: 8px; color: var(--text-main); padding: 10px; font-family: inherit; font-size: 12px;
+      resize: none; outline: none; margin-top: 10px;
+    }
+    .notes-input:focus { border-color: var(--cyan-glow); }
+
     /* GIS Tactical Map */
     #map {
-      height: 400px; width: 100%; border-radius: 12px;
-      filter: invert(100%) hue-rotate(190deg) brightness(90%) contrast(110%);
+      height: 380px; width: 100%; border-radius: 12px;
+      filter: var(--map-filter); transition: filter 0.3s ease;
     }
 
     /* Grid Spans */
@@ -135,14 +171,20 @@
     @media (max-width: 1024px) { .col-3, .col-4 { grid-column: span 6; } .col-8, .col-6 { grid-column: span 12; } }
     @media (max-width: 640px) { .col-3, .col-4, .col-6, .col-8 { grid-column: span 12; } }
 
+    @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
     @keyframes blink { from { opacity: 0.7; } to { opacity: 1; } }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="brand-title">Smart Safety Vest v1.00</div>
+    <div class="brand-title">VEST COMMAND // TACTICAL v4.0</div>
     <div class="nav-controls">
+      <div class="status-badge">
+        <div class="pulse-dot" id="pingDot"></div>
+        <span id="pingText">SYNCING...</span>
+      </div>
+      <button class="btn-action" onclick="toggleTheme()">THEME</button>
       <button class="btn-action" onclick="toggleAudio()">AUDIO: OFF</button>
       <button class="btn-action" style="border-color: var(--amber-glow); color: var(--amber-glow);" onclick="downloadLogs()">EXPORT REPORT</button>
     </div>
@@ -183,20 +225,26 @@
 
     <div class="card col-8 alert-card" id="alertCard">
       <div class="card-title">Threat Assessment & Alert Engine</div>
-      <div class="alert-title" id="alert">SYSTEM NORMAL</div>
+      <div class="alert-title" id="alert">SYSTEM NORMAL — ALL METRICS SECURE</div>
     </div>
 
-    <!-- Live Telemetry Terminal Logs -->
-    <div class="card col-6">
+    <!-- Live Telemetry Stream Logs -->
+    <div class="card col-4">
       <div class="card-title">Realtime System Stream Log</div>
       <div class="log-container" id="terminalLog">
         <div class="log-item">> System Initialized... Waiting for gateway packet.</div>
       </div>
     </div>
 
-    <!-- Live Tactical Map -->
+    <!-- Operator Notes Engine -->
+    <div class="card col-2">
+      <div class="card-title">Operator Notes</div>
+      <textarea class="notes-input" id="operatorNotes" placeholder="Type incident notes here..." oninput="saveNotes()"></textarea>
+    </div>
+
+    <!-- Live Tactical Map with Polyline GPS Trail -->
     <div class="card col-6">
-      <div class="card-title">Geographic Coordinates (NEO-M8N)</div>
+      <div class="card-title">Geographic Coordinates & Trail (NEO-M8N)</div>
       <div id="map"></div>
     </div>
 
@@ -212,7 +260,18 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Audio Alert Engine Setup (Web Audio API)
+    // Theme Switcher Engine
+    function toggleTheme() {
+      document.body.classList.toggle('light-theme');
+    }
+
+    // Operator Notes Local Persistence
+    document.getElementById('operatorNotes').value = localStorage.getItem('vest_operator_notes') || '';
+    function saveNotes() {
+      localStorage.setItem('vest_operator_notes', document.getElementById('operatorNotes').value);
+    }
+
+    // Web Audio Siren Setup
     let audioEnabled = false;
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -236,7 +295,7 @@
       osc.stop(audioCtx.currentTime + 0.5);
     }
 
-    // 2. Map Canvas Setup
+    // 2. Map Canvas & Route Trail Setup
     const map = L.map('map', { zoomControl: false }).setView([22.3569, 91.7832], 15);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
@@ -247,6 +306,7 @@
     });
 
     const marker = L.marker([22.3569, 91.7832], { icon: customIcon }).addTo(map);
+    const routePolyline = L.polyline([], { color: '#00f2ff', weight: 4, opacity: 0.7, dashArray: '8, 8' }).addTo(map);
 
     // Terminal Logger
     let logHistory = [];
@@ -264,19 +324,34 @@
     }
 
     function downloadLogs() {
-      const blob = new Blob([logHistory.join('\n')], { type: 'text/plain' });
+      const notes = document.getElementById('operatorNotes').value;
+      const exportContent = `=== SMART SAFETY VEST TELEMETRY REPORT ===\nExported: ${new Date().toLocaleString()}\n\nOPERATOR NOTES:\n${notes || 'None'}\n\nSYSTEM LOGS:\n` + logHistory.join('\n');
+      
+      const blob = new Blob([exportContent], { type: 'text/plain' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `Safety_Vest_Telemetry_${Date.now()}.txt`;
+      a.download = `Safety_Vest_Report_${Date.now()}.txt`;
       a.click();
     }
 
-    // 3. Realtime Firebase Processor
+    // Helper for Threshold Colors
+    function applyThreshold(elementId, value, warnLimit, dangerLimit) {
+      const el = document.getElementById(elementId);
+      el.classList.remove('gauge-warning', 'gauge-danger');
+      if (value >= dangerLimit) el.classList.add('gauge-danger');
+      else if (value >= warnLimit) el.classList.add('gauge-warning');
+    }
+
+    // 3. Realtime Firebase Processor & Heartbeat
     db.ref('/worker1').on('value', (snapshot) => {
       const data = snapshot.val();
       if(!data) return;
 
-      // Sensors & Progress Gauges
+      // Ping & Connection Heartbeat Status
+      document.getElementById('pingText').innerText = 'ONLINE (LIVE)';
+      document.getElementById('pingDot').style.background = 'var(--green-glow)';
+
+      // Sensors & Progress Gauges with Dynamic Threshold Colors
       if(data.environment) {
         const t = data.environment.temperature || 0;
         const h = data.environment.humidity || 0;
@@ -289,6 +364,10 @@
         document.getElementById('tempBar').style.width = Math.min((t / 60) * 100, 100) + '%';
         document.getElementById('humBar').style.width = Math.min(h, 100) + '%';
         document.getElementById('presBar').style.width = Math.min((p / 1100) * 100, 100) + '%';
+
+        // Threshold Triggers
+        applyThreshold('tempBar', t, 40, 50); // Warning > 40C, Danger > 50C
+        applyThreshold('humBar', h, 80, 90);
       }
 
       if(data.status) {
@@ -299,15 +378,18 @@
         const v = data.battery.voltage || 0;
         document.getElementById('batt').innerText = v.toFixed(2);
         document.getElementById('battBar').style.width = Math.min((v / 4.2) * 100, 100) + '%';
+        applyThreshold('battBar', 4.2 - v, 0.8, 1.0); // Low battery warning
       }
 
-      // Coordinates
+      // GPS Coordinates & Polyline Trail Rendering
       if(data.gps && data.gps.latitude && data.gps.longitude) {
         const lat = data.gps.latitude;
         const lng = data.gps.longitude;
         if(lat !== 0 && lng !== 0) {
-          marker.setLatLng([lat, lng]);
-          map.panTo([lat, lng]);
+          const newLatLng = [lat, lng];
+          marker.setLatLng(newLatLng);
+          routePolyline.addLatLng(newLatLng); // Adds to GPS history trail
+          map.panTo(newLatLng);
         }
       }
 
