@@ -336,6 +336,7 @@
       <div class="header-right">
         <button class="btn-action" id="audioBtn" onclick="toggleAudio()"><i class="fa-solid fa-volume-xmark" id="audioIcon"></i> Audio: OFF</button>
         <button class="btn-action" onclick="toggleTheme()"><i class="fa-solid fa-circle-half-stroke"></i> Theme</button>
+        <button class="btn-action" id="exportBtn" onclick="exportWorkerData()"><i class="fa-solid fa-download"></i> Export</button>
         <div class="clock-box"><i class="fa-regular fa-clock"></i> <span id="liveClock">--:--:--</span></div>
       </div>
     </header>
@@ -552,6 +553,54 @@
     }
 
     function toggleTheme() { document.body.classList.toggle('light-theme'); }
+
+    // ===================== Export Worker Data =====================
+    // Fetches the full '/worker1' node from Firebase Realtime Database
+    // and triggers a browser download of the raw JSON data.
+    function exportWorkerData() {
+      const exportBtn = document.getElementById('exportBtn');
+      const originalHtml = exportBtn.innerHTML;
+      exportBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Exporting...';
+      exportBtn.disabled = true;
+
+      db.ref('/worker1').once('value')
+        .then((snapshot) => {
+          const data = snapshot.val();
+          if (!data) {
+            alert('এক্সপোর্ট করার জন্য কোনো ডাটা পাওয়া যায়নি।');
+            return;
+          }
+
+          const exportPayload = {
+            exported_at: new Date().toISOString(),
+            worker_id: 'SV-001',
+            vest_id: 'VEST-001',
+            data: data
+          };
+
+          const jsonStr = JSON.stringify(exportPayload, null, 2);
+          const blob = new Blob([jsonStr], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+
+          const dateStamp = new Date().toISOString().replace(/[:.]/g, '-');
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `worker1_data_${dateStamp}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        })
+        .catch((err) => {
+          console.error('[Export] Firebase read FAILED:', err.message);
+          alert('ডাটা এক্সপোর্ট করতে ব্যর্থ হয়েছে:\n' + err.message +
+                '\n\n(সাধারণত এটা Firebase Realtime Database rules-এর কারণে হয়ে থাকে - console-এ বিস্তারিত দেখুন)');
+        })
+        .finally(() => {
+          exportBtn.innerHTML = originalHtml;
+          exportBtn.disabled = false;
+        });
+    }
 
     const menuBtn = document.getElementById('menuBtn');
     const sidebar = document.getElementById('sidebar');
