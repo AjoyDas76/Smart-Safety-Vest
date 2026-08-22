@@ -664,15 +664,15 @@
       }
     });
 
-    // FIREBASE REALTIME CONNECTION
+// FIREBASE REALTIME CONNECTION
     const firebaseConfig = {
-  apiKey: "AIzaSyDJl0vyF4mLdMVfIll9bdDXgA9GB0jc7RY",
-  authDomain: "worker-safety-vest-92b97.firebaseapp.com",
-  databaseURL: "https://worker-safety-vest-92b97-default-rtdb.firebaseio.com",
-  projectId: "worker-safety-vest-92b97",
-  storageBucket: "worker-safety-vest-92b97.firebasestorage.app",
-  messagingSenderId: "734334381393",
-  appId: "1:734334381393:web:ebfe2b722734068289b770"
+      apiKey: "AIzaSyDJl0vyF4mLdMVfIll9bdDXgA9GB0jc7RY",
+      authDomain: "worker-safety-vest-92b97.firebaseapp.com",
+      databaseURL: "https://worker-safety-vest-92b97-default-rtdb.firebaseio.com",
+      projectId: "worker-safety-vest-92b97",
+      storageBucket: "worker-safety-vest-92b97.firebasestorage.app",
+      messagingSenderId: "734334381393",
+      appId: "1:734334381393:web:ebfe2b722734068289b770"
     };
 
     if (!firebase.apps.length) {
@@ -682,7 +682,8 @@
 
     let isConnected = false;
 
-    db.ref('/sensor_data').on('value', (snapshot) => {
+    // ESP32 থেকে পাঠানো '/worker1' পাথ শোনানো হচ্ছে
+    db.ref('/worker1').on('value', (snapshot) => {
       const data = snapshot.val();
       if (!data) return;
 
@@ -719,83 +720,82 @@
 
       let isHazard = false;
 
-      // Temperature
-      if (data.temperature !== undefined) {
-        const val = Number(data.temperature);
-        document.getElementById('tempVal').innerText = val.toFixed(1);
-        if (val > 45 || val < 15) {
-          document.getElementById('tempStatus').innerText = 'High Temp';
-          document.getElementById('tempStatus').style.color = 'var(--red)';
-          isHazard = true;
-        } else {
-          document.getElementById('tempStatus').innerText = 'Normal';
-          document.getElementById('tempStatus').style.color = 'var(--green)';
+      // 1. Temperature, Humidity, Pressure (Environment Sub-node)
+      if (data.environment) {
+        // Temperature
+        if (data.environment.temperature !== undefined) {
+          const val = Number(data.environment.temperature);
+          document.getElementById('tempVal').innerText = val.toFixed(1);
+          if (val > 45 || val < 15) {
+            document.getElementById('tempStatus').innerText = 'High Temp';
+            document.getElementById('tempStatus').style.color = 'var(--red)';
+            isHazard = true;
+          } else {
+            document.getElementById('tempStatus').innerText = 'Normal';
+            document.getElementById('tempStatus').style.color = 'var(--green)';
+          }
+          updateSparkline('tempSpark', val);
+
+          mainChart.data.labels.push(timeStr);
+          mainChart.data.datasets[0].data.push(val);
+          if (mainChart.data.labels.length > 10) {
+            mainChart.data.labels.shift();
+            mainChart.data.datasets[0].data.shift();
+          }
+          mainChart.update();
         }
-        updateSparkline('tempSpark', val);
 
-        mainChart.data.labels.push(timeStr);
-        mainChart.data.datasets[0].data.push(val);
-        if (mainChart.data.labels.length > 10) {
-          mainChart.data.labels.shift();
-          mainChart.data.datasets[0].data.shift();
+        // Humidity
+        if (data.environment.humidity !== undefined) {
+          document.getElementById('humVal').innerText = Number(data.environment.humidity).toFixed(1);
+          document.getElementById('humStatus').innerText = 'Normal';
+          document.getElementById('humStatus').style.color = 'var(--green)';
+          updateSparkline('humSpark', Number(data.environment.humidity));
         }
-        mainChart.update();
-      }
 
-      // Gas
-      if (data.gas !== undefined) {
-        const val = Number(data.gas);
-        document.getElementById('gasVal').innerText = val.toFixed(0);
-        if (val > 50) {
-          document.getElementById('gasStatus').innerText = 'Hazardous';
-          document.getElementById('gasStatus').style.color = 'var(--red)';
-          isHazard = true;
-        } else {
-          document.getElementById('gasStatus').innerText = 'Good';
-          document.getElementById('gasStatus').style.color = 'var(--green)';
+        // Pressure
+        if (data.environment.pressure !== undefined) {
+          document.getElementById('presVal').innerText = Number(data.environment.pressure).toFixed(0);
+          document.getElementById('presStatus').innerText = 'Normal';
+          document.getElementById('presStatus').style.color = 'var(--green)';
+          updateSparkline('presSpark', Number(data.environment.pressure));
         }
-        updateSparkline('gasSpark', val);
       }
 
-      // Humidity
-      if (data.humidity !== undefined) {
-        document.getElementById('humVal').innerText = Number(data.humidity).toFixed(1);
-        document.getElementById('humStatus').innerText = 'Normal';
-        document.getElementById('humStatus').style.color = 'var(--green)';
-        updateSparkline('humSpark', Number(data.humidity));
-      }
+      // 2. Battery (Battery Sub-node)
+      if (data.battery && data.battery.voltage !== undefined) {
+        const volt = Number(data.battery.voltage);
+        // Calculate Percentage (Assuming 3.0V to 4.2V range)
+        let pct = Math.round(((volt - 3.0) / 1.2) * 100);
+        if (pct > 100) pct = 100;
+        if (pct < 0) pct = 0;
 
-      // Pressure
-      if (data.pressure !== undefined) {
-        document.getElementById('presVal').innerText = Number(data.pressure).toFixed(0);
-        document.getElementById('presStatus').innerText = 'Normal';
-        document.getElementById('presStatus').style.color = 'var(--green)';
-        updateSparkline('presSpark', Number(data.pressure));
-      }
-
-      // Battery
-      if (data.battery !== undefined) {
-        const val = Number(data.battery);
-        document.getElementById('battVal').innerText = val.toFixed(0);
-        document.getElementById('battStatus').innerText = val < 20 ? 'Low Battery' : 'Good';
-        document.getElementById('battStatus').style.color = val < 20 ? 'var(--red)' : 'var(--green)';
-        document.getElementById('battBar').style.width = `${Math.min(100, Math.max(0, val))}%`;
-        document.getElementById('battBar').style.background = val < 20 ? 'var(--red)' : 'var(--green)';
+        document.getElementById('battVal').innerText = pct;
+        document.getElementById('battStatus').innerText = pct < 20 ? 'Low Battery' : 'Good';
+        document.getElementById('battStatus').style.color = pct < 20 ? 'var(--red)' : 'var(--green)';
+        document.getElementById('battBar').style.width = `${pct}%`;
+        document.getElementById('battBar').style.background = pct < 20 ? 'var(--red)' : 'var(--green)';
         
-        const estVolt = (3.2 + (val / 100) * 1.0).toFixed(1);
-        document.getElementById('battVolt').innerText = `${estVolt} V`;
-        document.getElementById('battEst').innerText = `Est. ${Math.round((val/100)*6)}h`;
+        document.getElementById('battVolt').innerText = `${volt.toFixed(2)} V`;
+        document.getElementById('battEst').innerText = `Est. ${Math.round((pct/100)*6)}h`;
       }
 
-      // Map GPS
-      if (data.latitude && data.longitude) {
-        const lat = Number(data.latitude);
-        const lng = Number(data.longitude);
-        if (!isNaN(lat) && !isNaN(lng)) {
+      // 3. Map GPS Tracking (GPS Sub-node)
+      if (data.gps && data.gps.latitude && data.gps.longitude) {
+        const lat = Number(data.gps.latitude);
+        const lng = Number(data.gps.longitude);
+        if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
           const coords = [lat, lng];
           if (!workerMarker) workerMarker = L.marker(coords).addTo(map);
           else workerMarker.setLatLng(coords);
           map.panTo(coords);
+        }
+      }
+
+      // 4. Alerts & Hazards (Alerts Sub-node)
+      if (data.alerts) {
+        if (data.alerts.fall_detected || data.alerts.sos_active) {
+          isHazard = true;
         }
       }
 
@@ -806,11 +806,12 @@
       // Append Log Entry
       const eventTable = document.getElementById('eventLogTable');
       const newRow = document.createElement('tr');
+      const tempText = data.environment ? data.environment.temperature : '--';
       newRow.innerHTML = `
         <td>${timeStr}</td>
         <td>${isHazard ? 'Hazard Alert' : 'Packet Sync'}</td>
         <td><span class="badge ${isHazard ? 'badge-alert' : 'badge-safe'}">${isHazard ? 'ALERT' : 'SAFE'}</span></td>
-        <td>Temp: ${data.temperature ?? '--'} °C</td>
+        <td>Temp: ${tempText} °C</td>
       `;
       eventTable.insertBefore(newRow, eventTable.firstChild);
       if (eventTable.children.length > 5) eventTable.removeChild(eventTable.lastChild);
@@ -818,10 +819,8 @@
 
     function triggerSOS() {
       playEmergencySound();
-      db.ref('/alerts').push({
-        event: 'EMERGENCY SOS TRIGGERED',
-        timestamp: new Date().toISOString(),
-        worker_id: 'SV-001'
+      db.ref('/worker1/alerts').update({
+        sos_active: true
       });
       alert('SOS Signal sent to Firebase!');
     }
