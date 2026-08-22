@@ -859,14 +859,26 @@
 
     function toggleSOS() {
       const next = !webSosActive;
-      setSosUI(next);
-      db.ref('/worker1/commands').update({ web_sos: next });
+      setSosUI(next); // update UI optimistically
+      db.ref('/worker1/commands').update({ web_sos: next })
+        .then(() => {
+          console.log('[SOS] Firebase write OK, web_sos =', next);
+        })
+        .catch((err) => {
+          console.error('[SOS] Firebase write FAILED:', err.message);
+          alert('SOS command Firebase-এ পাঠাতে ব্যর্থ হয়েছে:\n' + err.message +
+                '\n\n(সাধারণত এটা Firebase Realtime Database rules-এর কারণে হয়ে থাকে - console-এ বিস্তারিত দেখুন)');
+          // Roll back the UI since the write didn't actually go through
+          setSosUI(!next);
+        });
       if (next) playEmergencySound();
     }
 
     // Sync button state on load / refresh in case SOS was left ON in a previous session
     db.ref('/worker1/commands/web_sos').once('value', (snap) => {
       setSosUI(snap.val() === true);
+    }, (err) => {
+      console.error('[SOS] Firebase read FAILED:', err.message);
     });
   </script>
 </body>
