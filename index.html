@@ -83,7 +83,8 @@
       border-radius: 12px; padding: 10px 18px;
     }
     .cmd-title { font-family: 'Orbitron', sans-serif; font-size: 15px; font-weight: 800; letter-spacing: 1px; }
-    .status-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-family: 'Orbitron', sans-serif; color: var(--green); background: rgba(16, 185, 129, 0.1); padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.3); margin-left: 12px; }
+    .status-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-family: 'Orbitron', sans-serif; color: var(--amber); background: rgba(245, 158, 11, 0.1); padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(245, 158, 11, 0.3); margin-left: 12px; }
+    .status-pill.connected { color: var(--green); background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); }
 
     .row { display: flex; gap: 12px; width: 100%; }
     .card {
@@ -93,8 +94,10 @@
     }
 
     .status-card { flex: 2; display: flex; align-items: center; gap: 14px; }
-    .status-icon { width: 44px; height: 44px; border-radius: 50%; background: rgba(16,185,129,0.1); border: 2px solid var(--green); display: grid; place-items: center; color: var(--green); font-size: 20px; box-shadow: 0 0 12px var(--green); }
-    .status-text h2 { font-family: 'Orbitron', sans-serif; font-size: 16px; color: var(--green); }
+    .status-icon { width: 44px; height: 44px; border-radius: 50%; background: rgba(245,158,11,0.1); border: 2px solid var(--amber); display: grid; place-items: center; color: var(--amber); font-size: 20px; box-shadow: 0 0 12px var(--amber); }
+    .status-icon.active { background: rgba(16,185,129,0.1); border-color: var(--green); color: var(--green); box-shadow: 0 0 12px var(--green); }
+    .status-text h2 { font-family: 'Orbitron', sans-serif; font-size: 16px; color: var(--amber); }
+    .status-text h2.active { color: var(--green); }
     .status-text p { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
     .sos-card {
@@ -114,7 +117,7 @@
     .sensor-title { font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
     .sensor-icon { color: var(--cyan); font-size: 13px; }
     .sensor-val { font-family: 'Orbitron', sans-serif; font-size: 20px; font-weight: 800; margin: 4px 0; }
-    .sensor-sub { font-size: 9px; color: var(--green); display: flex; justify-content: space-between; }
+    .sensor-sub { font-size: 9px; color: var(--text-muted); display: flex; justify-content: space-between; }
     .sparkline-box { height: 35px; width: 100%; margin-top: 4px; }
 
     .card-title { font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
@@ -127,7 +130,7 @@
     td { padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.03); }
     .badge { padding: 2px 6px; border-radius: 10px; font-size: 8px; font-weight: 700; font-family: 'Orbitron', sans-serif; display: inline-block; }
     .badge-safe { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid var(--green); }
-    .badge-danger { background: rgba(255,0,85,0.15); color: var(--red); border: 1px solid var(--red); }
+    .badge-wait { background: rgba(245,158,11,0.15); color: var(--amber); border: 1px solid var(--amber); }
   </style>
 </head>
 <body>
@@ -152,7 +155,7 @@
     <header>
       <div>
         <span class="cmd-title">VEST COMMAND // TACTICAL v4.1</span>
-        <span class="status-pill" id="connPill"><i class="fa-solid fa-circle" style="font-size: 6px;"></i> CONNECTED</span>
+        <span class="status-pill" id="connPill"><i class="fa-solid fa-circle" style="font-size: 6px;"></i> WAITING FOR DATA</span>
       </div>
       <div style="font-size: 11px; display: flex; gap: 16px;">
         <span id="liveClock" style="font-family: Orbitron;">--:--:--</span>
@@ -162,11 +165,11 @@
 
     <div class="row">
       <div class="card status-card">
-        <div class="status-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="status-icon" id="sysIcon"><i class="fa-solid fa-hourglass-half"></i></div>
         <div class="status-text">
-          <h2 id="sysStatusText">SYSTEM NORMAL</h2>
-          <p style="font-weight: 700; color: #fff;">ALL METRICS SECURE</p>
-          <p>Everything is operating within safe parameters.</p>
+          <h2 id="sysStatusText">AWAITING FIREBASE DATA</h2>
+          <p style="font-weight: 700; color: #fff;" id="sysSubText">NO DATA STREAM RECEIVED YET</p>
+          <p>Real-time metrics will update automatically upon sensor input.</p>
         </div>
       </div>
 
@@ -179,11 +182,11 @@
         <div class="avatar"><i class="fa-solid fa-user"></i></div>
         <div class="info-grid">
           <div><span>Worker ID:</span> SV-001</div>
-          <div><span>Status:</span> <b style="color: var(--green);" id="workerStatus">CONNECTED</b></div>
+          <div><span>Status:</span> <b style="color: var(--amber);" id="workerStatus">OFFLINE</b></div>
           <div><span>Name:</span> Worker 01</div>
           <div><span>Shift:</span> 08:00 - 16:00</div>
           <div><span>Vest ID:</span> VEST-001</div>
-          <div><span>Last Sync:</span> <span id="lastSyncTime">Just now</span></div>
+          <div><span>Last Sync:</span> <span id="lastSyncTime">--:--:--</span></div>
         </div>
       </div>
     </div>
@@ -191,52 +194,52 @@
     <div class="sensor-grid">
       <div class="card sensor-card">
         <div class="sensor-header"><span class="sensor-title">Temperature</span><i class="fa-solid fa-temperature-high sensor-icon"></i></div>
-        <div class="sensor-val"><span id="tempVal">32.4</span> <small style="font-size: 10px; color: var(--cyan);">°C</small></div>
-        <div class="sensor-sub"><span>Normal</span><span>15-45°C</span></div>
+        <div class="sensor-val"><span id="tempVal">--</span> <small style="font-size: 10px; color: var(--cyan);">°C</small></div>
+        <div class="sensor-sub"><span id="tempStatus">Awaiting</span><span>15-45°C</span></div>
         <div class="sparkline-box"><canvas id="tempSpark"></canvas></div>
       </div>
 
       <div class="card sensor-card">
         <div class="sensor-header"><span class="sensor-title">Humidity</span><i class="fa-solid fa-droplet sensor-icon"></i></div>
-        <div class="sensor-val"><span id="humVal">60.2</span> <small style="font-size: 10px; color: var(--cyan);">%</small></div>
-        <div class="sensor-sub"><span>Normal</span><span>20-90%</span></div>
+        <div class="sensor-val"><span id="humVal">--</span> <small style="font-size: 10px; color: var(--cyan);">%</small></div>
+        <div class="sensor-sub"><span id="humStatus">Awaiting</span><span>20-90%</span></div>
         <div class="sparkline-box"><canvas id="humSpark"></canvas></div>
       </div>
 
       <div class="card sensor-card">
         <div class="sensor-header"><span class="sensor-title">Pressure</span><i class="fa-solid fa-gauge-high sensor-icon"></i></div>
-        <div class="sensor-val"><span id="presVal">1012</span> <small style="font-size: 10px; color: var(--cyan);">hPa</small></div>
-        <div class="sensor-sub"><span>Normal</span><span>950-1050</span></div>
+        <div class="sensor-val"><span id="presVal">--</span> <small style="font-size: 10px; color: var(--cyan);">hPa</small></div>
+        <div class="sensor-sub"><span id="presStatus">Awaiting</span><span>950-1050</span></div>
         <div class="sparkline-box"><canvas id="presSpark"></canvas></div>
       </div>
 
       <div class="card sensor-card">
         <div class="sensor-header"><span class="sensor-title">Gas / Air</span><i class="fa-solid fa-wind sensor-icon"></i></div>
-        <div class="sensor-val"><span id="gasVal">12</span> <small style="font-size: 10px; color: var(--cyan);">ppm</small></div>
-        <div class="sensor-sub"><span>Good</span><span>0-50 ppm</span></div>
+        <div class="sensor-val"><span id="gasVal">--</span> <small style="font-size: 10px; color: var(--cyan);">ppm</small></div>
+        <div class="sensor-sub"><span id="gasStatus">Awaiting</span><span>0-50 ppm</span></div>
         <div class="sparkline-box"><canvas id="gasSpark"></canvas></div>
       </div>
 
       <div class="card sensor-card">
         <div class="sensor-header"><span class="sensor-title">Heart Rate</span><i class="fa-solid fa-heart-pulse sensor-icon" style="color: var(--red);"></i></div>
-        <div class="sensor-val"><span id="hrVal">78</span> <small style="font-size: 10px; color: var(--cyan);">bpm</small></div>
-        <div class="sensor-sub"><span>Normal</span><span>50-120 bpm</span></div>
+        <div class="sensor-val"><span id="hrVal">--</span> <small style="font-size: 10px; color: var(--cyan);">bpm</small></div>
+        <div class="sensor-sub"><span id="hrStatus">Awaiting</span><span>50-120 bpm</span></div>
         <div class="sparkline-box"><canvas id="hrSpark"></canvas></div>
       </div>
 
       <div class="card sensor-card">
         <div class="sensor-header"><span class="sensor-title">Battery</span><i class="fa-solid fa-battery-three-quarters sensor-icon" style="color: var(--green);"></i></div>
-        <div class="sensor-val"><span id="battVal">78</span> <small style="font-size: 10px; color: var(--cyan);">%</small></div>
-        <div class="sensor-sub"><span>7.8 V</span><span>Est. 4h 32m</span></div>
+        <div class="sensor-val"><span id="battVal">--</span> <small style="font-size: 10px; color: var(--cyan);">%</small></div>
+        <div class="sensor-sub"><span id="battVolt">-- V</span><span>Est. --</span></div>
         <div style="width: 100%; height: 5px; background: rgba(255,255,255,0.1); border-radius: 4px; margin-top: 10px;">
-          <div id="battBar" style="width: 78%; height: 100%; background: var(--green); border-radius: 4px;"></div>
+          <div id="battBar" style="width: 0%; height: 100%; background: var(--green); border-radius: 4px; transition: width 0.3s;"></div>
         </div>
       </div>
     </div>
 
     <div class="row">
       <div class="card" style="flex: 2;">
-        <div class="card-title">Live Sensor Data (Last 10 Min)</div>
+        <div class="card-title">Live Sensor Data Stream</div>
         <div class="chart-box"><canvas id="mainChart"></canvas></div>
       </div>
 
@@ -252,8 +255,7 @@
         <table>
           <thead><tr><th>TIME</th><th>EVENT</th><th>STATUS</th><th>VALUE</th></tr></thead>
           <tbody id="eventLogTable">
-            <tr><td>11:21:18 AM</td><td>Temperature Normal</td><td><span class="badge badge-safe">SAFE</span></td><td>32.4 °C</td></tr>
-            <tr><td>11:20:45 AM</td><td>Humidity Normal</td><td><span class="badge badge-safe">SAFE</span></td><td>60.2 %</td></tr>
+            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Waiting for sensor events...</td></tr>
           </tbody>
         </table>
       </div>
@@ -263,8 +265,7 @@
         <table>
           <thead><tr><th>ID</th><th>NAME</th><th>STATUS</th></tr></thead>
           <tbody>
-            <tr><td>SV-001</td><td>Worker 01</td><td><span class="badge badge-safe">SAFE</span></td></tr>
-            <tr><td>SV-002</td><td>Worker 02</td><td><span class="badge badge-safe">SAFE</span></td></tr>
+            <tr><td>SV-001</td><td>Worker 01</td><td><span class="badge badge-wait" id="tableWorkerBadge">OFFLINE</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -277,35 +278,47 @@
       document.getElementById('liveClock').innerText = new Date().toLocaleTimeString();
     }, 1000);
 
-    // Leaflet Map Initialization
+    // Leaflet Map Initialization (Default View: Chattogram, BD)
     const map = L.map('map', { zoomControl: false }).setView([22.3569, 91.7832], 14);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-    const workerMarker = L.marker([22.3569, 91.7832]).addTo(map);
+    let workerMarker = null;
 
-    // Sparklines Charts Generator
+    // Sparklines Charts Generator (Initialized Empty)
     const sparklineInstances = {};
-    function createSparkline(id, color, values) {
+    function createSparkline(id, color) {
       const ctx = document.getElementById(id).getContext('2d');
       sparklineInstances[id] = new Chart(ctx, {
         type: 'line',
-        data: { labels: values.map(() => ''), datasets: [{ data: values, borderColor: color, borderWidth: 1.8, pointRadius: 0, fill: false }] },
+        data: { labels: [], datasets: [{ data: [], borderColor: color, borderWidth: 1.8, pointRadius: 0, fill: false }] },
         options: { plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } }, responsive: true, maintainAspectRatio: false }
       });
     }
 
-    createSparkline('tempSpark', '#00f2ff', [30, 31, 32, 31, 32.4]);
-    createSparkline('humSpark', '#00f2ff', [58, 60, 59, 61, 60.2]);
-    createSparkline('presSpark', '#00f2ff', [1010, 1011, 1012, 1012, 1012]);
-    createSparkline('gasSpark', '#10b981', [10, 11, 14, 12, 12]);
-    createSparkline('hrSpark', '#ff0055', [72, 75, 80, 76, 78]);
+    createSparkline('tempSpark', '#00f2ff');
+    createSparkline('humSpark', '#00f2ff');
+    createSparkline('presSpark', '#00f2ff');
+    createSparkline('gasSpark', '#10b981');
+    createSparkline('hrSpark', '#ff0055');
 
-    // Main Chart
+    function updateSparkline(id, val) {
+      const chart = sparklineInstances[id];
+      if (!chart) return;
+      chart.data.labels.push('');
+      chart.data.datasets[0].data.push(val);
+      if (chart.data.labels.length > 10) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+      }
+      chart.update();
+    }
+
+    // Main Chart Initialization (Empty)
     const mainChartCtx = document.getElementById('mainChart').getContext('2d');
     const mainChart = new Chart(mainChartCtx, {
       type: 'line',
       data: {
-        labels: ['11:12', '11:14', '11:16', '11:18', '11:20', '11:21'],
-        datasets: [{ label: 'Temp (°C)', data: [31, 33, 30, 35, 32, 32.4], borderColor: '#ff0055', backgroundColor: 'rgba(255,0,85,0.1)', fill: true, tension: 0.3 }]
+        labels: [],
+        datasets: [{ label: 'Temp (°C)', data: [], borderColor: '#ff0055', backgroundColor: 'rgba(255,0,85,0.1)', fill: true, tension: 0.3 }]
       },
       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     });
@@ -324,40 +337,139 @@
     }
     const db = firebase.database();
 
+    let hasReceivedFirstData = false;
+
     // Firebase Listener for Live Data Updates
     db.ref('/sensor_data').on('value', (snapshot) => {
       const data = snapshot.val();
       if (!data) return;
 
-      // Update UI Sensor Cards
-      if (data.temperature !== undefined) document.getElementById('tempVal').innerText = Number(data.temperature).toFixed(1);
-      if (data.humidity !== undefined) document.getElementById('humVal').innerText = Number(data.humidity).toFixed(1);
-      if (data.pressure !== undefined) document.getElementById('presVal').innerText = Number(data.pressure).toFixed(0);
-      if (data.gas !== undefined) document.getElementById('gasVal').innerText = Number(data.gas).toFixed(0);
-      if (data.heart_rate !== undefined) document.getElementById('hrVal').innerText = Number(data.heart_rate).toFixed(0);
-      if (data.battery !== undefined) {
-        document.getElementById('battVal').innerText = Number(data.battery).toFixed(0);
-        document.getElementById('battBar').style.width = `${data.battery}%`;
+      // Update Connection Status on First Data
+      if (!hasReceivedFirstData) {
+        hasReceivedFirstData = true;
+
+        const connPill = document.getElementById('connPill');
+        connPill.classList.add('connected');
+        connPill.innerHTML = '<i class="fa-solid fa-circle" style="font-size: 6px;"></i> CONNECTED';
+
+        const sysIcon = document.getElementById('sysIcon');
+        sysIcon.classList.add('active');
+        sysIcon.innerHTML = '<i class="fa-solid fa-shield-halved"></i>';
+
+        const sysStatusText = document.getElementById('sysStatusText');
+        sysStatusText.classList.add('active');
+        sysStatusText.innerText = 'SYSTEM NORMAL';
+
+        document.getElementById('sysSubText').innerText = 'ALL METRICS SECURE';
+        document.getElementById('workerStatus').innerText = 'ONLINE';
+        document.getElementById('workerStatus').style.color = 'var(--green)';
+
+        const tableBadge = document.getElementById('tableWorkerBadge');
+        tableBadge.className = 'badge badge-safe';
+        tableBadge.innerText = 'SAFE';
+
+        // Clear empty table message
+        document.getElementById('eventLogTable').innerHTML = '';
       }
 
-      // Update Map Location if GPS Data Available
-      if (data.latitude && data.longitude) {
-        const newCoords = [data.latitude, data.longitude];
-        workerMarker.setLatLng(newCoords);
-        map.panTo(newCoords);
-      }
+      const nowTimeStr = new Date().toLocaleTimeString();
+      document.getElementById('lastSyncTime').innerText = nowTimeStr;
 
-      // Update Sync Time
-      document.getElementById('lastSyncTime').innerText = new Date().toLocaleTimeString();
-
-      // Dynamically push to Main Chart
+      // 1. Temperature
       if (data.temperature !== undefined) {
-        const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        mainChart.data.labels.shift();
-        mainChart.data.labels.push(nowStr);
-        mainChart.data.datasets[0].data.shift();
-        mainChart.data.datasets[0].data.push(data.temperature);
+        const val = Number(data.temperature);
+        document.getElementById('tempVal').innerText = val.toFixed(1);
+        document.getElementById('tempStatus').innerText = (val > 45 || val < 15) ? 'Warning' : 'Normal';
+        document.getElementById('tempStatus').style.color = (val > 45 || val < 15) ? 'var(--red)' : 'var(--green)';
+        updateSparkline('tempSpark', val);
+
+        // Chart Update
+        const timeLabel = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        mainChart.data.labels.push(timeLabel);
+        mainChart.data.datasets[0].data.push(val);
+        if (mainChart.data.labels.length > 10) {
+          mainChart.data.labels.shift();
+          mainChart.data.datasets[0].data.shift();
+        }
         mainChart.update();
+      }
+
+      // 2. Humidity
+      if (data.humidity !== undefined) {
+        const val = Number(data.humidity);
+        document.getElementById('humVal').innerText = val.toFixed(1);
+        document.getElementById('humStatus').innerText = 'Normal';
+        document.getElementById('humStatus').style.color = 'var(--green)';
+        updateSparkline('humSpark', val);
+      }
+
+      // 3. Pressure
+      if (data.pressure !== undefined) {
+        const val = Number(data.pressure);
+        document.getElementById('presVal').innerText = val.toFixed(0);
+        document.getElementById('presStatus').innerText = 'Normal';
+        document.getElementById('presStatus').style.color = 'var(--green)';
+        updateSparkline('presSpark', val);
+      }
+
+      // 4. Gas / Air
+      if (data.gas !== undefined) {
+        const val = Number(data.gas);
+        document.getElementById('gasVal').innerText = val.toFixed(0);
+        document.getElementById('gasStatus').innerText = val > 50 ? 'Hazardous' : 'Good';
+        document.getElementById('gasStatus').style.color = val > 50 ? 'var(--red)' : 'var(--green)';
+        updateSparkline('gasSpark', val);
+      }
+
+      // 5. Heart Rate
+      if (data.heart_rate !== undefined) {
+        const val = Number(data.heart_rate);
+        document.getElementById('hrVal').innerText = val.toFixed(0);
+        document.getElementById('hrStatus').innerText = (val > 120 || val < 50) ? 'Abnormal' : 'Normal';
+        document.getElementById('hrStatus').style.color = (val > 120 || val < 50) ? 'var(--red)' : 'var(--green)';
+        updateSparkline('hrSpark', val);
+      }
+
+      // 6. Battery
+      if (data.battery !== undefined) {
+        const val = Number(data.battery);
+        document.getElementById('battVal').innerText = val.toFixed(0);
+        document.getElementById('battBar').style.width = `${Math.min(100, Math.max(0, val))}%`;
+        
+        // Approximate Voltage (4.2V Max, 3.2V Min)
+        const estVolt = (3.2 + (val / 100) * 1.0).toFixed(1);
+        document.getElementById('battVolt').innerText = `${estVolt} V`;
+      }
+
+      // GPS Map Tracking
+      if (data.latitude && data.longitude) {
+        const lat = Number(data.latitude);
+        const lng = Number(data.longitude);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          const coords = [lat, lng];
+          if (!workerMarker) {
+            workerMarker = L.marker(coords).addTo(map);
+          } else {
+            workerMarker.setLatLng(coords);
+          }
+          map.panTo(coords);
+        }
+      }
+
+      // Add to Table Event Log
+      const eventTable = document.getElementById('eventLogTable');
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = `
+        <td>${nowTimeStr}</td>
+        <td>Data Received</td>
+        <td><span class="badge badge-safe">SAFE</span></td>
+        <td>Temp: ${data.temperature ?? '--'} °C</td>
+      `;
+      eventTable.insertBefore(newRow, eventTable.firstChild);
+      
+      // Limit rows to last 5 logs
+      if (eventTable.children.length > 5) {
+        eventTable.removeChild(eventTable.lastChild);
       }
     });
 
