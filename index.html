@@ -177,6 +177,25 @@
       width: 48px; height: 48px; border-radius: 50%; background: var(--red);
       color: #fff; font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 14px;
       display: grid; place-items: center; box-shadow: 0 0 15px var(--red); border: 2px solid #fff;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* Active state = buzzer confirmed ON by the vest (via LoRa telemetry) */
+    .sos-card.sos-active .sos-btn {
+      animation: sosPulse 1s ease-in-out infinite;
+    }
+    .sos-card.sos-active {
+      border-color: var(--red);
+      animation: sosCardGlow 1s ease-in-out infinite;
+    }
+    @keyframes sosPulse {
+      0%   { transform: scale(1);    box-shadow: 0 0 15px var(--red); }
+      50%  { transform: scale(1.12); box-shadow: 0 0 30px 8px var(--red); }
+      100% { transform: scale(1);    box-shadow: 0 0 15px var(--red); }
+    }
+    @keyframes sosCardGlow {
+      0%, 100% { background: radial-gradient(circle at center, rgba(255,0,85,0.25) 0%, rgba(13,25,44,0.6) 100%); }
+      50%      { background: radial-gradient(circle at center, rgba(255,0,85,0.55) 0%, rgba(13,25,44,0.6) 100%); }
     }
 
     .worker-info-card { flex: 2; min-width: 250px; display: flex; align-items: center; gap: 14px; }
@@ -326,9 +345,9 @@
         </div>
       </div>
 
-      <div class="card glass-panel sos-card" onclick="triggerSOS()">
-        <div class="sos-btn">SOS</div>
-        <span style="font-size: 8px; color: #ff80a8; margin-top: 4px; font-weight: 700; font-family: Orbitron;">EMERGENCY SOS</span>
+      <div class="card glass-panel sos-card" id="sosCard" onclick="triggerSOS()">
+        <div class="sos-btn" id="sosBtn">SOS</div>
+        <span style="font-size: 8px; color: #ff80a8; margin-top: 4px; font-weight: 700; font-family: Orbitron;" id="sosLabel">EMERGENCY SOS</span>
       </div>
 
       <div class="card glass-panel worker-info-card">
@@ -757,12 +776,26 @@
           sosBadge.className = "badge badge-alert";
           sosBadge.innerText = "SOS ACTIVE";
           isHazard = true;
-          activeAlerts.push('SOS Activated');
+          activeAlerts.push('SOS Activated (Physical Button)');
         } else {
           sosStatus.innerText = "SOS: Inactive";
           sosStatus.style.color = "var(--text-muted)";
           sosBadge.className = "badge badge-safe";
           sosBadge.innerText = "SOS NORMAL";
+        }
+
+        // Confirmed buzzer state, as echoed back by the vest itself over
+        // LoRa - not just an optimistic guess from the button click.
+        const sosCard = document.getElementById('sosCard');
+        const sosBtn = document.getElementById('sosBtn');
+        if (data.alerts.web_sos_active) {
+          sosCard.classList.add('sos-active');
+          sosBtn.innerText = 'SOS ON';
+          isHazard = true;
+          activeAlerts.push('Remote Buzzer Active (Web SOS)');
+        } else {
+          sosCard.classList.remove('sos-active');
+          sosBtn.innerText = 'SOS';
         }
       }
 
@@ -841,10 +874,32 @@
       });
     }, 2000);
 
+    // Toggles the vest's buzzer remotely. Writes to a command path kept
+    // OUTSIDE "worker1" on purpose (see receiver firmware comments) -
+    // the vest's own telemetry PUT to "worker1" every 2s would otherwise
+    // silently wipe out whatever we write here.
     function triggerSOS() {
-      playEmergencySound();
-      db.ref('/worker1/alerts').update({ sos_active: true });
-      alert('SOS Signal sent!');
+      const cmdRef = db.ref('commands/worker1/sos_buzzer');
+      cmdRef.once('value').then((snapshot) => {
+        const isCurrentlyOn = snapshot.val() === true;
+        const next = !isCurrentlyOn;
+        cmdRef.set(next);
+        playEmergencySound();
+
+        // Optimistic feedback while we wait (~2-3s) for the vest to
+        // confirm the real buzzer state back over LoRa. If a command
+        // packet is lost in the air, the next telemetry sync will
+        // correct this animation to match the vest's true state.
+        const sosCard = document.getElementById('sosCard');
+        const sosBtn = document.getElementById('sosBtn');
+        if (next) {
+          sosCard.classList.add('sos-active');
+          sosBtn.innerText = 'SOS ON';
+        } else {
+          sosCard.classList.remove('sos-active');
+          sosBtn.innerText = 'SOS';
+        }
+      });
     }
   </script>
 </body>
