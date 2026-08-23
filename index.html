@@ -2786,37 +2786,67 @@ body.light-theme .worker-avatar {
     // Uses a dedicated '/worker1/commands/web_sos' flag so it never collides with the
     // vest's own physical SOS-button reading at '/worker1/alerts/sos_active'.
     let webSosActive = false;
+    let sosWriteInFlight = false;  // true while a Firebase write is still pending
+    let sosRequestSeq = 0;         // guards against a late/out-of-order write reply
 
-    function setSosUI(active) {
+    // FIX for the "SOS sometimes rings the buzzer, sometimes doesn't" bug:
+    // toggleSOS() used to fire a brand-new async Firebase write on every single
+    // click with no lock between them. During a real emergency people tend to
+    // tap the button more than once (nervous double-tap, or "did that register?"
+    // second tap) — each tap started its own write, and because network replies
+    // don't always arrive in the order they were sent, an OLDER write could land
+    // AFTER a newer one and silently overwrite it. So a click could show "ON" in
+    // the UI while the actual value that ended up in Firebase (and that the vest
+    // reads) was "OFF" — buzzer never rings, with zero error shown. Now only one
+    // write is ever in flight, extra taps while it's pending are ignored, and a
+    // late reply from a stale request is not allowed to clobber a newer state.
+    function setSosUI(active, sending) {
       const sosBtn = document.getElementById('sosBtn');
       const sosCard = document.getElementById('sosCard');
       webSosActive = active;
-      if (active) {
-        sosBtn.innerText = 'ON';
-        sosBtn.classList.add('active');
-        sosCard.classList.add('active');
-      } else {
-        sosBtn.innerText = 'OFF';
-        sosBtn.classList.remove('active');
-        sosCard.classList.remove('active');
-      }
+      sosBtn.innerText = sending ? (active ? 'SENDING…' : 'CANCELLING…') : (active ? 'ON' : 'OFF');
+      sosBtn.classList.toggle('active', active);
+      sosCard.classList.toggle('active', active);
     }
 
     function toggleSOS() {
+      // Ignore extra taps while a write is still in flight instead of starting
+      // an overlapping second write.
+      if (sosWriteInFlight) return;
+
       const next = !webSosActive;
-      setSosUI(next); // update UI optimistically
+      const myRequestId = ++sosRequestSeq;
+      sosWriteInFlight = true;
+      setSosUI(next, true); // optimistic UI, shown as "sending" until confirmed
+
       db.ref('/worker1/commands').update({ web_sos: next })
         .then(() => {
           console.log('[SOS] Firebase write OK, web_sos =', next);
+          // Only finalize the UI if no newer tap has happened since this write started.
+          if (myRequestId === sosRequestSeq) setSosUI(next, false);
         })
         .catch((err) => {
           console.error('[SOS] Firebase write FAILED:', err.message);
           alert('SOS command Firebase-এ পাঠাতে ব্যর্থ হয়েছে:\n' + err.message +
                 '\n\n(সাধারণত এটা Firebase Realtime Database rules-এর কারণে হয়ে থাকে - console-এ বিস্তারিত দেখুন)');
           // Roll back the UI since the write didn't actually go through
-          setSosUI(!next);
+          if (myRequestId === sosRequestSeq) setSosUI(!next, false);
+        })
+        .finally(() => {
+          if (myRequestId === sosRequestSeq) sosWriteInFlight = false;
         });
+
       if (next) playEmergencySound();
+
+      // Safety valve: if the device is briefly offline, Firebase queues the
+      // write and may not resolve/reject for a while. Don't leave the button
+      // permanently locked in that case — release it after 6s so it can be
+      // retried, without touching a write that finished normally in the meantime.
+      setTimeout(() => {
+        if (myRequestId === sosRequestSeq && sosWriteInFlight) {
+          sosWriteInFlight = false;
+        }
+      }, 6000);
     }
 
     // Sync button state on load / refresh in case SOS was left ON in a previous session
