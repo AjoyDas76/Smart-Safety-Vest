@@ -2967,58 +2967,55 @@ body.light-theme .worker-avatar {
     }
 
     // ===================== Continuous Emergency Siren =====================
-    // A real, hard-to-miss two-tone "wailing" siren (built with the Web
-    // Audio API, so no external audio file is needed) that loops for as
-    // long as a hazard stays active — fall, SOS, or an out-of-range
-    // temperature/humidity/pressure reading — and stops automatically the
-    // moment the hazard clears. This replaces relying on a single short
-    // beep, which was easy to miss and didn't repeat reliably.
-    let sirenOsc = null, sirenLFO = null, sirenGain = null, sirenActive = false;
+    // Repeats an audible alert for as long as a hazard stays active — fall,
+    // SOS, or an out-of-range temperature/humidity/pressure reading — and
+    // stops automatically the moment the hazard clears.
+    //
+    // NOTE: an earlier version of this used a continuously-running
+    // oscillator whose pitch was modulated by a second oscillator (a
+    // "wailing siren" audio graph left connected and playing non-stop).
+    // That turned out to be too heavy for the WebView this dashboard runs
+    // in — it made the whole page unresponsive for as long as the alert
+    // was sounding. This version instead schedules a short (~0.4s) beep
+    // on a plain timer and tears every audio node back down right after
+    // each beep finishes, so nothing stays connected/running between
+    // beeps and the audio graph never accumulates work.
+    let sirenIntervalId = null;
+
+    function playAlertBeep() {
+      if (!audioEnabled) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.25, audioCtx.currentTime + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+        // Drop references once the node has finished so nothing lingers.
+        osc.onended = () => { try { osc.disconnect(); gain.disconnect(); } catch (e) {} };
+      } catch (e) {
+        console.error('[Audio] Alert beep failed:', e.message);
+      }
+    }
 
     function startEmergencySiren() {
-      if (!audioEnabled || sirenActive) return;
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-
-      sirenActive = true;
-      sirenOsc = audioCtx.createOscillator();
-      sirenLFO = audioCtx.createOscillator();
-      const lfoGain = audioCtx.createGain();
-      sirenGain = audioCtx.createGain();
-
-      sirenOsc.type = 'sawtooth';
-      sirenOsc.frequency.setValueAtTime(700, audioCtx.currentTime);
-
-      // LFO sweeps the main oscillator's pitch up/down once per second,
-      // giving the classic wailing-siren sound (roughly 400Hz - 1000Hz).
-      sirenLFO.type = 'sine';
-      sirenLFO.frequency.setValueAtTime(1, audioCtx.currentTime);
-      lfoGain.gain.setValueAtTime(300, audioCtx.currentTime);
-      sirenLFO.connect(lfoGain);
-      lfoGain.connect(sirenOsc.frequency);
-
-      sirenGain.gain.setValueAtTime(0, audioCtx.currentTime);
-      sirenGain.gain.linearRampToValueAtTime(0.28, audioCtx.currentTime + 0.15);
-
-      sirenOsc.connect(sirenGain);
-      sirenGain.connect(audioCtx.destination);
-
-      sirenOsc.start();
-      sirenLFO.start();
+      if (!audioEnabled || sirenIntervalId) return;
+      playAlertBeep();
+      sirenIntervalId = setInterval(playAlertBeep, 700);
     }
 
     function stopEmergencySiren() {
-      if (!sirenActive) return;
-      sirenActive = false;
-      const osc = sirenOsc, lfo = sirenLFO, gain = sirenGain;
-      try {
-        if (gain && audioCtx) gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
-      } catch (e) { /* ignore */ }
-      setTimeout(() => {
-        try { if (osc) osc.stop(); } catch (e) {}
-        try { if (lfo) lfo.stop(); } catch (e) {}
-      }, 300);
-      sirenOsc = null; sirenLFO = null; sirenGain = null;
+      if (sirenIntervalId) {
+        clearInterval(sirenIntervalId);
+        sirenIntervalId = null;
+      }
     }
 
     function toggleTheme() { document.body.classList.toggle('light-theme'); }
@@ -3648,6 +3645,7 @@ body.light-theme .worker-avatar {
     // does, every live reading the dashboard receives is now also logged
     // here, straight from the same data already shown on screen.
     const LOG_SAMPLE_INTERVAL_MS = 60 * 1000; // routine sample: at most once/minute
+    const HAZARD_LOG_INTERVAL_MS = 5 * 1000;  // during a hazard: at most once/5s (still catches it, without flooding Firebase if a hazard stays active for a long time)
     let lastLoggedAt = 0;
     let lastLoggedKey = null;
 
@@ -3687,11 +3685,14 @@ body.light-theme .worker-avatar {
       });
       const now = Date.now();
 
-      // Always log immediately for a hazard (fall / SOS / out-of-range
-      // reading) so it can never be missed from the reports. Otherwise
-      // just take a routine sample once a minute, and skip it entirely if
-      // nothing at all changed since the last logged row.
-      const shouldLog = isHazard || (now - lastLoggedAt >= LOG_SAMPLE_INTERVAL_MS && key !== lastLoggedKey);
+      // Log promptly for a hazard (fall / SOS / out-of-range reading) so it
+      // can never be missed from the reports, but still capped to once
+      // every HAZARD_LOG_INTERVAL_MS - a hazard that stays active for a
+      // long time would otherwise write a new row on every single reading
+      // forever. Outside a hazard, just take a routine sample once a
+      // minute, and skip it entirely if nothing changed since last logged.
+      const minGap = isHazard ? HAZARD_LOG_INTERVAL_MS : LOG_SAMPLE_INTERVAL_MS;
+      const shouldLog = now - lastLoggedAt >= minGap && (isHazard || key !== lastLoggedKey);
       if (!shouldLog) return;
 
       lastLoggedAt = now;
