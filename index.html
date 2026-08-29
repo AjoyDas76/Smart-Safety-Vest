@@ -2662,11 +2662,12 @@ body.light-theme .worker-avatar {
       <div class="card glass-panel worker-info-card">
         <div class="worker-avatar"><i class="fa-solid fa-user"></i></div>
         <div class="worker-details">
-          <div><span>ID :</span> SV-001</div>
+          <div><span>ID :</span> <span id="workerIdVal">SV-001</span></div>
           <div><span>Status :</span> <b style="color: var(--amber);" id="workerStatus">OFFLINE</b></div>
-          <div><span>Name :</span> Worker 01</div>
+          <div><span>Name :</span> <span id="workerNameVal">Worker 01</span></div>
+          <div><span>Batch :</span> <span id="batchIdVal">BATCH-01</span></div>
           <div><span>Shift :</span> 08:00 - 16:00</div>
-          <div><span>Vest ID :</span> VEST-001</div>
+          <div><span>Vest ID :</span> <span id="vestIdVal">VEST-001</span></div>
           <div><span>Sync :</span> <span id="lastSyncTime">--:--:--</span></div>
         </div>
       </div>
@@ -2904,6 +2905,31 @@ body.light-theme .worker-avatar {
   </div>
 
   <script>
+    // ===================== Worker / Vest Profile =====================
+    // Single source of truth for worker identity, used to fill the
+    // worker-info card and stamped onto every history log row + every
+    // Excel export (Quick Export and the Daily/Weekly/Monthly Reports).
+    // Change these three values here if the worker/vest/batch changes —
+    // everything else (UI card, logs, exports) picks it up automatically.
+    const WORKER_PROFILE = {
+      workerId: 'SV-001',
+      workerName: 'Worker 01',
+      batchId: 'BATCH-01',
+      vestId: 'VEST-001'
+    };
+    (function fillWorkerInfoCard() {
+      const map = {
+        workerIdVal: WORKER_PROFILE.workerId,
+        workerNameVal: WORKER_PROFILE.workerName,
+        batchIdVal: WORKER_PROFILE.batchId,
+        vestIdVal: WORKER_PROFILE.vestId
+      };
+      Object.keys(map).forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = map[id];
+      });
+    })();
+
     let audioEnabled = false;
     let audioCtx = null;
 
@@ -2917,12 +2943,16 @@ body.light-theme .worker-avatar {
       } else {
         audioBtn.classList.remove('active-sound');
         audioBtn.innerHTML = '<i class="fa-solid fa-volume-xmark" id="audioIcon"></i> Audio: OFF';
+        stopEmergencySiren(); // don't leave a siren running once audio is muted
       }
     }
 
+    // Short one-off confirmation chirp — used for discrete events like the
+    // manual SOS button press, not for an ongoing hazard.
     function playEmergencySound() {
       if (!audioEnabled) return;
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'sawtooth';
@@ -2934,6 +2964,61 @@ body.light-theme .worker-avatar {
       gain.connect(audioCtx.destination);
       osc.start();
       osc.stop(audioCtx.currentTime + 0.5);
+    }
+
+    // ===================== Continuous Emergency Siren =====================
+    // A real, hard-to-miss two-tone "wailing" siren (built with the Web
+    // Audio API, so no external audio file is needed) that loops for as
+    // long as a hazard stays active — fall, SOS, or an out-of-range
+    // temperature/humidity/pressure reading — and stops automatically the
+    // moment the hazard clears. This replaces relying on a single short
+    // beep, which was easy to miss and didn't repeat reliably.
+    let sirenOsc = null, sirenLFO = null, sirenGain = null, sirenActive = false;
+
+    function startEmergencySiren() {
+      if (!audioEnabled || sirenActive) return;
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      sirenActive = true;
+      sirenOsc = audioCtx.createOscillator();
+      sirenLFO = audioCtx.createOscillator();
+      const lfoGain = audioCtx.createGain();
+      sirenGain = audioCtx.createGain();
+
+      sirenOsc.type = 'sawtooth';
+      sirenOsc.frequency.setValueAtTime(700, audioCtx.currentTime);
+
+      // LFO sweeps the main oscillator's pitch up/down once per second,
+      // giving the classic wailing-siren sound (roughly 400Hz - 1000Hz).
+      sirenLFO.type = 'sine';
+      sirenLFO.frequency.setValueAtTime(1, audioCtx.currentTime);
+      lfoGain.gain.setValueAtTime(300, audioCtx.currentTime);
+      sirenLFO.connect(lfoGain);
+      lfoGain.connect(sirenOsc.frequency);
+
+      sirenGain.gain.setValueAtTime(0, audioCtx.currentTime);
+      sirenGain.gain.linearRampToValueAtTime(0.28, audioCtx.currentTime + 0.15);
+
+      sirenOsc.connect(sirenGain);
+      sirenGain.connect(audioCtx.destination);
+
+      sirenOsc.start();
+      sirenLFO.start();
+    }
+
+    function stopEmergencySiren() {
+      if (!sirenActive) return;
+      sirenActive = false;
+      const osc = sirenOsc, lfo = sirenLFO, gain = sirenGain;
+      try {
+        if (gain && audioCtx) gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+      } catch (e) { /* ignore */ }
+      setTimeout(() => {
+        try { if (osc) osc.stop(); } catch (e) {}
+        try { if (lfo) lfo.stop(); } catch (e) {}
+      }, 300);
+      sirenOsc = null; sirenLFO = null; sirenGain = null;
     }
 
     function toggleTheme() { document.body.classList.toggle('light-theme'); }
@@ -3022,8 +3107,10 @@ body.light-theme .worker-avatar {
         ]);
 
         const sheetData = [
-          ['Worker ID', 'SV-001'],
-          ['Vest ID', 'VEST-001'],
+          ['Worker ID', WORKER_PROFILE.workerId],
+          ['Worker Name', WORKER_PROFILE.workerName],
+          ['Batch ID', WORKER_PROFILE.batchId],
+          ['Vest ID', WORKER_PROFILE.vestId],
           ['Exported At', new Date().toLocaleString()],
           ['Records Exported', String(selectedEntries.length)],
           [],
@@ -3551,6 +3638,70 @@ body.light-theme .worker-avatar {
       `).join('');
     }
 
+    // ===================== History Logging (Reports data source) =====================
+    // The Reports modal, Map Tracking and All Alerts screens all read their
+    // data from '/worker1/logs'. Previously nothing in this web app wrote
+    // to that path — it relied entirely on separate ESP32 receiver
+    // firmware to push rows there, so if that firmware wasn't deployed (or
+    // wasn't writing in the exact expected shape) Reports stayed empty
+    // forever. To make Reports work reliably no matter what the firmware
+    // does, every live reading the dashboard receives is now also logged
+    // here, straight from the same data already shown on screen.
+    const LOG_SAMPLE_INTERVAL_MS = 60 * 1000; // routine sample: at most once/minute
+    let lastLoggedAt = 0;
+    let lastLoggedKey = null;
+
+    function logSnapshotToFirebase(data, isHazard) {
+      if (typeof db === 'undefined' || !data) return;
+
+      const env = data.environment || {};
+      const status = data.status || {};
+      const alerts = data.alerts || {};
+      const gps = data.gps || {};
+
+      const temperature = Number(env.temperature);
+      const humidity = Number(env.humidity);
+      const pressure = Number(env.pressure);
+      const latitude = Number(gps.latitude);
+      const longitude = Number(gps.longitude);
+
+      const entry = {
+        ts: firebase.database.ServerValue.TIMESTAMP,
+        temperature: isNaN(temperature) ? null : temperature,
+        humidity: isNaN(humidity) ? null : humidity,
+        pressure: isNaN(pressure) ? null : pressure,
+        motion_state: status.motion_state ? String(status.motion_state).trim().toUpperCase() : null,
+        fall: !!alerts.fall_detected,
+        sos: !!alerts.sos_active,
+        latitude: isNaN(latitude) ? null : latitude,
+        longitude: isNaN(longitude) ? null : longitude,
+        workerId: WORKER_PROFILE.workerId,
+        workerName: WORKER_PROFILE.workerName,
+        batchId: WORKER_PROFILE.batchId,
+        vestId: WORKER_PROFILE.vestId
+      };
+
+      const key = JSON.stringify({
+        t: entry.temperature, h: entry.humidity, p: entry.pressure,
+        m: entry.motion_state, f: entry.fall, s: entry.sos
+      });
+      const now = Date.now();
+
+      // Always log immediately for a hazard (fall / SOS / out-of-range
+      // reading) so it can never be missed from the reports. Otherwise
+      // just take a routine sample once a minute, and skip it entirely if
+      // nothing at all changed since the last logged row.
+      const shouldLog = isHazard || (now - lastLoggedAt >= LOG_SAMPLE_INTERVAL_MS && key !== lastLoggedKey);
+      if (!shouldLog) return;
+
+      lastLoggedAt = now;
+      lastLoggedKey = key;
+
+      db.ref('/worker1/logs').push(entry).catch((err) => {
+        console.error('[Reports] Failed to write history log:', err.message);
+      });
+    }
+
     // CORE UI UPDATE FUNCTION
     function processIncomingData(data) {
       if (!data) return;
@@ -3729,7 +3880,13 @@ body.light-theme .worker-avatar {
         }
       }
 
-      if (isHazard) playEmergencySound();
+      if (isHazard) startEmergencySiren(); else stopEmergencySiren();
+
+      // Write this reading into '/worker1/logs' so the Reports / Map
+      // Tracking / All Alerts screens (which all read that path) always
+      // have real data to show, regardless of whether separate firmware
+      // is also logging.
+      logSnapshotToFirebase(data, isHazard);
 
       renderActiveAlerts(activeAlertsList);
 
@@ -3827,7 +3984,7 @@ body.light-theme .worker-avatar {
           if (myRequestId === sosRequestSeq) sosWriteInFlight = false;
         });
 
-      if (next) playEmergencySound();
+      if (next) { playEmergencySound(); startEmergencySiren(); } else { stopEmergencySiren(); }
 
       // Safety valve: if the device is briefly offline, Firebase queues the
       // write and may not resolve/reject for a while. Don't leave the button
@@ -4641,19 +4798,38 @@ body.light-theme .worker-avatar {
         btn.disabled = true;
 
         try {
-          const header = ['Timestamp', 'Temperature (C)', 'Humidity (%)', 'Pressure (hPa)', 'Fall', 'SOS'];
-          const rows = lastFetchedEntries.map((e) => [
-            new Date(e.ts).toLocaleString(),
-            (typeof e.temperature === 'number' && !isNaN(e.temperature)) ? e.temperature : '',
-            (typeof e.humidity === 'number' && !isNaN(e.humidity)) ? e.humidity : '',
-            (typeof e.pressure === 'number' && !isNaN(e.pressure)) ? e.pressure : '',
-            e.fall ? 'YES' : 'NO',
-            e.sos ? 'YES' : 'NO'
-          ]);
+          const header = [
+            'Worker ID', 'Worker Name', 'Batch ID', 'Vest ID', 'Timestamp',
+            'Temperature (C)', 'Humidity (%)', 'Pressure (hPa)', 'Motion State',
+            'Fall Alert', 'SOS Alert', 'Temp Alert', 'Humidity Alert', 'Pressure Alert'
+          ];
+          const rows = lastFetchedEntries.map((e) => {
+            const temp = (typeof e.temperature === 'number' && !isNaN(e.temperature)) ? e.temperature : null;
+            const hum = (typeof e.humidity === 'number' && !isNaN(e.humidity)) ? e.humidity : null;
+            const pres = (typeof e.pressure === 'number' && !isNaN(e.pressure)) ? e.pressure : null;
+            return [
+              e.workerId || WORKER_PROFILE.workerId,
+              e.workerName || WORKER_PROFILE.workerName,
+              e.batchId || WORKER_PROFILE.batchId,
+              e.vestId || WORKER_PROFILE.vestId,
+              new Date(e.ts).toLocaleString(),
+              temp !== null ? temp : '',
+              hum !== null ? hum : '',
+              pres !== null ? pres : '',
+              e.motion_state || '--',
+              e.fall ? 'YES' : 'NO',
+              e.sos ? 'YES' : 'NO',
+              (temp !== null && (temp > 45 || temp < 15)) ? 'YES' : 'NO',
+              (hum !== null && (hum > 90 || hum < 20)) ? 'YES' : 'NO',
+              (pres !== null && (pres > 1050 || pres < 950)) ? 'YES' : 'NO'
+            ];
+          });
 
           const sheetData = [
-            ['Worker ID', 'SV-001'],
-            ['Vest ID', 'VEST-001'],
+            ['Worker ID', WORKER_PROFILE.workerId],
+            ['Worker Name', WORKER_PROFILE.workerName],
+            ['Batch ID', WORKER_PROFILE.batchId],
+            ['Vest ID', WORKER_PROFILE.vestId],
             ['Report Range', currentRange.toUpperCase()],
             ['Generated At', new Date().toLocaleString()],
             ['Records', String(rows.length)],
@@ -4663,7 +4839,11 @@ body.light-theme .worker-avatar {
           ];
 
           const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
-          worksheet['!cols'] = [{ wch: 20 }, { wch: 16 }, { wch: 14 }, { wch: 14 }, { wch: 8 }, { wch: 8 }];
+          worksheet['!cols'] = [
+            { wch: 12 }, { wch: 16 }, { wch: 12 }, { wch: 12 }, { wch: 20 },
+            { wch: 15 }, { wch: 13 }, { wch: 14 }, { wch: 13 },
+            { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 13 }, { wch: 13 }
+          ];
 
           const workbook = XLSX.utils.book_new();
           XLSX.utils.book_append_sheet(workbook, worksheet, currentRange + ' report');
