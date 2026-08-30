@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <!-- Theme -->
+    <LinearLayout
+        android:id="@+id/cardTheme"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_glass_dark"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView style="@style/GlassCardText" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:id="@+id/lblThemeTitle" android:text="@string/settings_theme" android:textSize="14sp" />
+            <TextView style="@style/GlassCardTextMuted" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:id="@+id/lblThemeDesc" android:layout_marginTop="2dp" android:text="@string/settings_theme_desc" />
+        </LinearLayout>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchTheme"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:thumbTint="@color/accent_cyan" />
+    </LinearLayout>
+
+    <!-- Audio -->
+    <LinearLayout
+        android:id="@+id/cardAudio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_glass_dark"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView style="@style/GlassCardText" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:id="@+id/lblAudioTitle" android:text="@string/settings_audio" android:textSize="14sp" />
+            <TextView style="@style/GlassCardTextMuted" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:id="@+id/lblAudioDesc" android:layout_marginTop="2dp" android:text="@string/settings_audio_desc" />
+        </LinearLayout>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchAudio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:thumbTint="@color/accent_cyan" />
+    </LinearLayout>
+
+    <!-- Notification -->
+    <LinearLayout
+        android:id="@+id/cardNotification"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_glass_dark"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView style="@style/GlassCardText" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:id="@+id/lblNotificationTitle" android:text="@string/settings_notification" android:textSize="14sp" />
+            <TextView style="@style/GlassCardTextMuted" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:id="@+id/lblNotificationDesc" android:layout_marginTop="2dp" android:text="@string/settings_notification_desc" />
+        </LinearLayout>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchNotification"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:thumbTint="@color/accent_cyan" />
+    </LinearLayout>
+
+    <!-- Logout -->
+    <LinearLayout
+        android:id="@+id/btnLogout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_glass_dark"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_logout"
+            app:tint="@color/accent_red"
+            android:contentDescription="@null" />
+
+        <TextView
+            style="@style/GlassCardText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:text="@string/settings_logout"
+            android:textColor="@color/accent_red"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+</LinearLayout>

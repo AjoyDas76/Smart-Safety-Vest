@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ===== Dark theme (default) — matches site's -bg-gradient / -glass-bg ===== -->
+    <color name="dark_bg_top">#0D1B2A</color>
+    <color name="dark_bg_bottom">#050B14</color>
+    <color name="dark_glass_bg">#A60D192C</color>
+    <color name="dark_glass_border">#4000F2FF</color>
+    <color name="dark_glass_border_strong">#8C00F2FF</color>
+    <color name="dark_text_main">#F8FAFC</color>
+    <color name="dark_text_muted">#8493A8</color>
+    <color name="dark_border_subtle">#14FFFFFF</color>
+
+    <!-- ===== Light theme — matches site's light -bg-gradient / -glass-bg ===== -->
+    <color name="light_bg_top">#E2E8F0</color>
+    <color name="light_bg_bottom">#CBD5E1</color>
+    <color name="light_glass_bg">#C0FFFFFF</color>
+    <color name="light_glass_border">#6600A2FF</color>
+    <color name="light_glass_border_strong">#B300A2FF</color>
+    <color name="light_text_main">#0F172A</color>
+    <color name="light_text_muted">#1E293B</color>
+    <color name="light_border_subtle">#14000000</color>
+
+    <!-- ===== Accents (shared) ===== -->
+    <color name="accent_cyan">#00F2FF</color>
+    <color name="accent_cyan_deep">#0E7490</color>
+    <color name="accent_blue">#0077FF</color>
+    <color name="accent_green">#22C55E</color>
+    <color name="accent_amber">#F59E0B</color>
+    <color name="accent_red">#EF4444</color>
+    <color name="accent_purple">#A855F7</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+
+    <!-- default/status-bar -->
+    <color name="status_bar">#050B14</color>
+</resources>
