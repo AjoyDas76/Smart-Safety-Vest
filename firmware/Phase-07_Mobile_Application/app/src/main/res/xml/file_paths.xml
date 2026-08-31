@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Used only by the FileProvider declared in AndroidManifest.xml so exported
+    report files (written under the app's own external-files "reports"
+    folder) can be shared/opened via a content:// Uri, as required on
+    Android 7+ (file:// Uris passed to other apps are blocked there).
+-->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <external-files-path name="reports" path="reports/" />
+</paths>

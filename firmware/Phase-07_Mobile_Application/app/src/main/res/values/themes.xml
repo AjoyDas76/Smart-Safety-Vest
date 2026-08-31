@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Default (dark) app theme -->
+    <style name="Theme.SmartVest" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/accent_cyan</item>
+        <item name="colorPrimaryDark">@color/dark_bg_bottom</item>
+        <item name="colorAccent">@color/accent_cyan</item>
+        <item name="android:statusBarColor">@color/status_bar</item>
+        <item name="android:windowBackground">@color/dark_bg_bottom</item>
+        <item name="android:navigationBarColor">@color/dark_bg_bottom</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+    </style>
+
+    <!-- Light variant, switched to programmatically via ThemeManager -->
+    <style name="Theme.SmartVest.Light">
+        <item name="colorPrimary">@color/accent_blue</item>
+        <item name="colorPrimaryDark">@color/light_bg_bottom</item>
+        <item name="colorAccent">@color/accent_blue</item>
+        <item name="android:statusBarColor">@color/light_bg_bottom</item>
+        <item name="android:windowBackground">@color/light_bg_bottom</item>
+        <item name="android:navigationBarColor">@color/light_bg_bottom</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+    </style>
+
+    <!-- Fullscreen splash theme -->
+    <style name="Theme.SmartVest.Splash" parent="Theme.SmartVest">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">@drawable/bg_splash_gradient</item>
+    </style>
+
+    <style name="GlassCardText">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textColor">@color/dark_text_main</item>
+    </style>
+
+    <style name="GlassCardTextMuted">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/dark_text_muted</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+
+</resources>

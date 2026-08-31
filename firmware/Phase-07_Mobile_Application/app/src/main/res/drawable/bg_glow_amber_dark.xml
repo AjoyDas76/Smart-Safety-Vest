@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Outer soft glow -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent" />
+            <corners android:radius="18dp" />
+            <stroke android:width="4dp" android:color="#4DF59E0B" />
+        </shape>
+    </item>
+
+    <!-- Card fill + crisp bright neon edge -->
+    <item
+        android:left="2dp" android:top="2dp"
+        android:right="2dp" android:bottom="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/dark_glass_bg" />
+            <corners android:radius="16dp" />
+            <stroke android:width="1.5dp" android:color="#FFF59E0B" />
+        </shape>
+    </item>
+
+</layer-list>

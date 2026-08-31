@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_glass_dark"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <FrameLayout
+        android:id="@+id/frameSensorIcon"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:background="@drawable/bg_icon_circle">
+
+        <ImageView
+            android:id="@+id/imgSensorIcon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_thermometer"
+            app:tint="@color/accent_cyan"
+            android:contentDescription="@null" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/txtSensorLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:letterSpacing="0.06"
+        android:text="@string/temperature"
+        android:textColor="@color/dark_text_muted"
+        android:textSize="10sp" />
+
+    <TextView
+        android:id="@+id/txtSensorValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:fontFamily="sans-serif-black"
+        android:text="--"
+        android:textColor="@color/dark_text_main"
+        android:textSize="20sp" />
+
+</LinearLayout>
