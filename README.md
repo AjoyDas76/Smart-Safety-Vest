@@ -42,10 +42,10 @@ datasheets/
 - [x] Phase 3 - MPU6050 Motion & Fall Detection
 - [x] Phase 4 - GPS Tracking System
 - [x] Phase 5 - LoRa Communication System
-- [ ] Phase 6 - IoT Cloud Platform
-- [ ] Phase 7 - Mobile Application
-- [ ] Phase 8 - Smart Safety Features
-- [ ] Phase 9 - System Integration
+- [x] Phase 6 - IoT Cloud Platform
+- [x] Phase 7 - Mobile Application
+- [x] Phase 8 - Smart Safety Features
+- [x] Phase 9 - System Integration
 - [ ] Phase 10 - Final Product Release
 
 See `firmware/README.md` for the full phase-by-phase breakdown and status.
