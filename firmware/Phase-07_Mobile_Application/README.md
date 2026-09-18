@@ -49,5 +49,3 @@
 - Push notification support
 
 ---
-
-*Note: This release note was compiled from the project's feature report and the app's screen/manager modules. Please review the Dashboard, Live Chart, Report, Safety Rules, Worker Profiles, and Settings sections yourself before publishing, since their exact in-app details were inferred from file names rather than manually verified.*
