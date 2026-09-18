@@ -2541,6 +2541,146 @@ body.light-theme .worker-avatar {
     overflow: hidden !important;
     position: relative !important;
   }
+  /* =========================================================
+     MOTION STATE CARD — bigger fall / SOS flag badges
+     The two pills at the bottom of the Motion State card were
+     too small to read at a glance, so they now use a larger
+     type size and taller padding (the pill grows downward into
+     the card's existing empty space). Only these two badges are
+     affected; every other .badge on the dashboard is unchanged.
+     ========================================================= */
+  #fallBadge,
+  #sosBadge {
+    font-size: 10px !important;
+    padding: 7px 6px !important;
+    border-radius: 6px !important;
+    letter-spacing: .6px;
+    line-height: 1.15;
+  }
+
+  @media (max-width: 420px) {
+    #fallBadge,
+    #sosBadge {
+      font-size: 9px !important;
+      padding: 6px 5px !important;
+    }
+  }
+  /* =========================================================
+     LIGHT THEME REFINEMENT (final override layer)
+     1. Sky-blue page background instead of the flat grey.
+     2. Larger, darker text everywhere so it stays readable on
+        a bright background.
+     3. Thicker neon ring around every glass panel.
+     4. Header buttons (Audio / Theme / Export) were nearly
+        invisible — they used a faint cyan wash that disappears
+        on a light header. They now have a solid white face,
+        a real blue border and dark label text.
+     Dark theme is untouched: every rule below is scoped to
+     body.light-theme.
+     ========================================================= */
+  body.light-theme {
+    --bg-gradient:
+      radial-gradient(1100px 700px at 50% -12%, rgba(255,255,255,.95), transparent 62%),
+      radial-gradient(900px 620px at 100% 100%, rgba(0,153,224,.18), transparent 58%),
+      linear-gradient(180deg, #ddf2fd 0%, #c3e5f8 52%, #aed8f2 100%);
+    --glass-bg: rgba(255,255,255,.82);
+    --glass-shine: linear-gradient(145deg, rgba(255,255,255,.96), rgba(255,255,255,.55));
+    --glass-border: rgba(0,120,196,.55);
+    --card-glow:
+      0 10px 26px rgba(8,54,86,.14),
+      0 0 0 2px rgba(0,150,220,.20),
+      0 0 24px rgba(0,150,220,.30),
+      inset 0 1px 0 rgba(255,255,255,.92);
+    --cyan: #0068c4;
+    --cyan-glow: rgba(0,104,196,.35);
+    --text-main: #041424;
+    --text-muted: #21364e;
+    --border-subtle: rgba(4,32,62,.18);
+    --aside-bg: rgba(255,255,255,.96);
+  }
+
+  /* 3. Thicker neon edge on every box */
+  body.light-theme .glass-panel {
+    border-width: 2px;
+  }
+  body.light-theme .glass-panel:hover {
+    box-shadow:
+      0 14px 30px rgba(8,54,86,.18),
+      0 0 0 2px rgba(0,150,220,.30),
+      0 0 30px rgba(0,150,220,.40),
+      inset 0 1px 0 rgba(255,255,255,.92);
+  }
+
+  /* 4. Header controls — solid, clearly visible buttons */
+  body.light-theme .btn-action {
+    background: #ffffff;
+    border: 1.5px solid rgba(0,104,196,.55);
+    color: #062338;
+    font-size: 12px;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(8,54,86,.14);
+  }
+  body.light-theme .btn-action i { color: #0068c4; }
+  body.light-theme .btn-action:hover {
+    background: #e9f6ff;
+    border-color: #0068c4;
+    box-shadow: 0 3px 12px rgba(0,104,196,.24);
+  }
+  body.light-theme .btn-action.active-sound {
+    background: #e2f7ef;
+    border-color: rgba(16,185,129,.7);
+    color: #064e3b;
+  }
+  body.light-theme .clock-box {
+    font-size: 12px;
+    font-weight: 700;
+    color: #064e86;
+  }
+  body.light-theme .status-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8a4b00;
+    background: rgba(245,158,11,.20);
+    border-color: rgba(180,110,0,.65);
+  }
+  body.light-theme .status-badge.connected {
+    color: #065f46;
+    background: rgba(16,185,129,.18);
+    border-color: rgba(6,120,90,.65);
+  }
+
+  /* 2. Bigger, higher-contrast text */
+  body.light-theme .cmd-title { font-size: 15px; }
+  body.light-theme .nav-item a { font-size: 14px; font-weight: 600; color: #21364e; }
+  body.light-theme .nav-item.active a, body.light-theme .nav-item a:hover { color: #041424; }
+  body.light-theme .card-title { font-size: 11px; font-weight: 800; color: #143451; }
+  body.light-theme .system-text h2 { font-size: 16px; }
+  body.light-theme .system-text h3 { font-size: 13px; }
+  body.light-theme .system-text p { font-size: 11px; color: #21364e; }
+  body.light-theme .worker-details { font-size: 12.5px; }
+  body.light-theme .worker-details span { color: #354962; font-weight: 600; }
+  body.light-theme .sensor-title-v2 { font-size: 9px; color: #1c3450; }
+  body.light-theme .sensor-val-v2 { font-size: 20px; }
+  body.light-theme .sensor-val-v2 small { font-size: 11px; }
+  body.light-theme .sensor-status-v2 { font-size: 11px; font-weight: 700; }
+  body.light-theme .sensor-range-v2 { font-size: 9px; color: #2b3f58; }
+  body.light-theme .device-conn-list { font-size: 12px; }
+  body.light-theme table { font-size: 11px; }
+  body.light-theme th { font-size: 10.5px; color: #143451; }
+  body.light-theme .active-alert-title { font-size: 12.5px; }
+  body.light-theme .active-alert-detail { font-size: 11.5px; color: #17293e; opacity: 1; }
+  body.light-theme .badge { font-size: 9px; }
+
+  /* The sensor cards have a fixed height in the dark theme; with the
+     larger light-theme type they need to size to their content so
+     nothing gets clipped by the card's overflow:hidden. */
+  body.light-theme .sensor-card-v2 {
+    height: auto;
+    min-height: 162px;
+  }
+  @media (max-width: 420px) {
+    body.light-theme .sensor-card-v2 { height: auto; min-height: 152px; }
+  }
 
 </style>
 </head>
@@ -2654,10 +2794,8 @@ body.light-theme .worker-avatar {
         </div>
       </div>
 
-      <div class="card glass-panel sos-card" id="sosCard" onclick="toggleSOS()" role="button" tabindex="0" aria-pressed="false" aria-label="Toggle emergency SOS">
-        <div class="sos-btn" id="sosBtn" aria-hidden="true">OFF</div>
-        <span style="font-size: 8px; color: #ff80a8; margin-top: 4px; font-weight: 700; font-family: Orbitron;">EMERGENCY SOS</span>
-      </div>
+      <!-- Emergency SOS card removed (unreliable buzzer trigger). The two remaining
+           cards below/above now share the full row width via their existing flex values. -->
 
       <div class="card glass-panel worker-info-card">
         <div class="worker-avatar"><i class="fa-solid fa-user"></i></div>
@@ -2713,7 +2851,7 @@ body.light-theme .worker-avatar {
         <div class="sparkline-box-v2"><canvas id="presSpark"></canvas></div>
       </div>
 
-      <div class="sensor-card-v2 glass-panel">
+      <div class="sensor-card-v2 glass-panel" style="justify-content: flex-start;">
         <div class="sensor-body-v2">
           <div class="sensor-icon-box" id="motionIconBox" style="color: var(--yellow); filter: drop-shadow(0 0 6px rgba(234,179,8,0.6));"><i class="fa-solid fa-person-walking" id="motionIcon"></i></div>
           <div class="sensor-info-box">
@@ -2723,9 +2861,9 @@ body.light-theme .worker-avatar {
             <span class="sensor-range-v2" id="sosAlertStatus">SOS: Inactive</span>
           </div>
         </div>
-        <div style="display: flex; gap: 4px; margin-top: 8px;">
-          <span class="badge badge-safe" id="fallBadge" style="width: 100%; text-align: center; font-size: 7px;">NO FALL</span>
-          <span class="badge badge-safe" id="sosBadge" style="width: 100%; text-align: center; font-size: 7px;">SOS NORMAL</span>
+        <div style="display: flex; gap: 6px; margin-top: 20px;">
+          <span class="badge badge-safe" id="fallBadge" style="width: 100%; text-align: center;">NO FALL</span>
+          <span class="badge badge-safe" id="sosBadge" style="width: 100%; text-align: center;">SOS NORMAL</span>
         </div>
       </div>
     </div>
@@ -3773,79 +3911,12 @@ body.light-theme .worker-avatar {
       }
     }, 1000);
 
-    // ===================== Web SOS Toggle (rings the vest buzzer) =====================
-    // Uses a dedicated '/worker1/commands/web_sos' flag so it never collides with the
-    // vest's own physical SOS-button reading at '/worker1/alerts/sos_active'.
-    let webSosActive = false;
-    let sosWriteInFlight = false;  // true while a Firebase write is still pending
-    let sosRequestSeq = 0;         // guards against a late/out-of-order write reply
-
-    // FIX for the "SOS sometimes rings the buzzer, sometimes doesn't" bug:
-    // toggleSOS() used to fire a brand-new async Firebase write on every single
-    // click with no lock between them. During a real emergency people tend to
-    // tap the button more than once (nervous double-tap, or "did that register?"
-    // second tap) — each tap started its own write, and because network replies
-    // don't always arrive in the order they were sent, an OLDER write could land
-    // AFTER a newer one and silently overwrite it. So a click could show "ON" in
-    // the UI while the actual value that ended up in Firebase (and that the vest
-    // reads) was "OFF" — buzzer never rings, with zero error shown. Now only one
-    // write is ever in flight, extra taps while it's pending are ignored, and a
-    // late reply from a stale request is not allowed to clobber a newer state.
-    function setSosUI(active, sending) {
-      const sosBtn = document.getElementById('sosBtn');
-      const sosCard = document.getElementById('sosCard');
-      webSosActive = active;
-      sosBtn.innerText = sending ? (active ? 'SENDING…' : 'CANCELLING…') : (active ? 'ON' : 'OFF');
-      sosBtn.classList.toggle('active', active);
-      sosCard.classList.toggle('active', active);
-    }
-
-    function toggleSOS() {
-      // Ignore extra taps while a write is still in flight instead of starting
-      // an overlapping second write.
-      if (sosWriteInFlight) return;
-
-      const next = !webSosActive;
-      const myRequestId = ++sosRequestSeq;
-      sosWriteInFlight = true;
-      setSosUI(next, true); // optimistic UI, shown as "sending" until confirmed
-
-      db.ref('/worker1/commands').update({ web_sos: next })
-        .then(() => {
-          console.log('[SOS] Firebase write OK, web_sos =', next);
-          // Only finalize the UI if no newer tap has happened since this write started.
-          if (myRequestId === sosRequestSeq) setSosUI(next, false);
-        })
-        .catch((err) => {
-          console.error('[SOS] Firebase write FAILED:', err.message);
-          alert('SOS command Firebase-এ পাঠাতে ব্যর্থ হয়েছে:\n' + err.message +
-                '\n\n(সাধারণত এটা Firebase Realtime Database rules-এর কারণে হয়ে থাকে - console-এ বিস্তারিত দেখুন)');
-          // Roll back the UI since the write didn't actually go through
-          if (myRequestId === sosRequestSeq) setSosUI(!next, false);
-        })
-        .finally(() => {
-          if (myRequestId === sosRequestSeq) sosWriteInFlight = false;
-        });
-
-      if (next) playEmergencySound();
-
-      // Safety valve: if the device is briefly offline, Firebase queues the
-      // write and may not resolve/reject for a while. Don't leave the button
-      // permanently locked in that case — release it after 6s so it can be
-      // retried, without touching a write that finished normally in the meantime.
-      setTimeout(() => {
-        if (myRequestId === sosRequestSeq && sosWriteInFlight) {
-          sosWriteInFlight = false;
-        }
-      }, 6000);
-    }
-
-    // Sync button state on load / refresh in case SOS was left ON in a previous session
-    db.ref('/worker1/commands/web_sos').once('value', (snap) => {
-      setSosUI(snap.val() === true);
-    }, (err) => {
-      console.error('[SOS] Firebase read FAILED:', err.message);
-    });
+    // ===================== Web SOS Toggle — REMOVED =====================
+    // The dashboard-side SOS button (and its '/worker1/commands/web_sos' write)
+    // has been removed because the buzzer trigger was not firing reliably.
+    // The vest's own physical SOS button is untouched: its status is still read
+    // from '/worker1/alerts/sos_active' and shown in the Motion State card
+    // (#sosAlertStatus / #sosBadge) plus the alert log.
   
 
     // =========================================================
