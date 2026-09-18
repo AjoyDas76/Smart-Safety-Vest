@@ -66,9 +66,9 @@ See `firmware/README.md` for the full phase-by-phase breakdown and status.
 | Phase 03 - MPU6050 Integration             | ✅ Completed     |
 | Phase 04 - GPS Module Integration                 | ✅ Completed      |
 | Phase 05 - LoRa Integration                | ✅ Completed     |
-| Phase 06 - IoT Cloud Platform         | ⬜ Pending     |
-| Phase 07 - Mobile Application            | ⬜ Pending     |
-| Phase 08 - Smart Safety Feature Integration    | ⬜ Pending     |
+| Phase 06 - IoT Cloud Platform         | ✅ Completed     |
+| Phase 07 - Mobile Application            | ✅ Completed     |
+| Phase 08 - Smart Safety Feature Integration    | ✅ Completed     |
 | Phase 09 - Full System Integration              | ⬜ Pending     |
 | Phase 10 - Final Product Release | ⬜ Pending     |
 
