@@ -1,0 +1,6 @@
+{
+  "name": "Vest Command",
+  "description": "LoRa-based Smart Industrial Safety Vest real-time telemetry, GPS tracking, sensor alerts, and reporting dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
