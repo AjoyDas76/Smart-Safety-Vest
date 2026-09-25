@@ -1,6 +1,6 @@
 :root {
       --bg-gradient: radial-gradient(circle at 50% 10%, #0d1b2a 0%, #050b14 100%);
-      --glass-bg: rgba(13, 25, 44, 0.55);
+      --glass-bg: rgba(13, 25, 44, 0.72);
       --glass-border: rgba(0, 242, 255, 0.25);
       --glass-shine: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.02) 100%);
       --card-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
@@ -48,8 +48,12 @@
       background: var(--glass-shine), var(--glass-bg);
       border: 1px solid var(--glass-border);
       border-radius: 14px;
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      /* backdrop-filter blur removed here on purpose: with 15+ of these cards
+         on screen, the browser had to resample the blur behind every single
+         one on every scroll frame — the main cause of scroll jank. There's
+         no busy texture behind these cards anyway (just a smooth gradient),
+         so a slightly more opaque --glass-bg gives nearly the same "glass"
+         look for a fraction of the GPU cost. */
       box-shadow: var(--card-glow);
     }
 
@@ -57,8 +61,8 @@
       width: 240px;
       background: var(--aside-bg);
       border-right: 1px solid var(--glass-border);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       display: flex;
       flex-direction: column;
       padding: 16px 12px;
