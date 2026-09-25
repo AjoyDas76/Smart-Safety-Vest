@@ -119,8 +119,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: body,
-    icon: './assets/icon-192.png',
-    badge: './assets/icon-192.png',
+    icon: './icon-192.png',
+    badge: './icon-192.png',
     tag: data.type || 'vest-alert',
     // Fall/SOS should stay on screen until the worker/supervisor dismisses
     // it, not auto-disappear like a routine sync notification.
