@@ -22,8 +22,8 @@ const SHELL_FILES = [
   './index.html',
   './style.css',
   './app.js',
-  './assets/logo.png',
-  './assets/icon-192.png',
+  './logo.png',
+  './icon-192.png',
 ];
 
 self.addEventListener('install', (event) => {
